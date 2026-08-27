@@ -1,17 +1,15 @@
-## Plan: Password Visibility Toggle on Login
+Plan: Clean up Help page bullet formatting
 
-### What to build
-Add a show/hide password eye icon button inside all password input fields on the **Auth** page (mobile and desktop sign-in/sign-up forms).
+## What will change
+Update `src/pages/Docs.tsx` so the text under these three cards no longer uses markdown-style bold bullets (`- **Label**:`):
+- Getting Started → Verification Process → "Performing a Verification"
+- Getting Started → Verification Process → "Understanding Results"
+- Security → "Data Protection"
 
-### Implementation
-1. **Modify `Auth.tsx`** — update the `FloatingInput` component to accept an optional `showToggle` prop.
-2. When `showToggle` is true and the input `type` is `password`, render an eye icon button at the right edge of the input field.
-3. Clicking the button toggles the input type between `password` and `text`.
-4. Apply this to:
-   - Mobile: password, confirm password
-   - Desktop sign-in: password
-   - Desktop sign-up: password, confirm password
-5. Use `Eye` / `EyeOff` icons from `lucide-react` (already imported in `Auth.tsx`).
+## Proposed formatting
+- Replace each `- **Label**: value` line with a plain-sentence paragraph such as `Label: value`.
+- Keep the paragraph breaks so the information stays readable and organized.
+- Leave other help sections untouched.
 
-### Files changed
-- `src/pages/Auth.tsx`
+## Technical detail
+`src/pages/Docs.tsx` stores the content strings inside the `sections` constant. The text is rendered with `whitespace-pre-line`, so line breaks are preserved. We only need to edit the string content for the three cards listed above.
