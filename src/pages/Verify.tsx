@@ -21,6 +21,7 @@ interface VerificationResult {
     issued_at: string;
     expires_at: string;
     status: string;
+    metadata: Record<string, unknown> | null;
   };
 }
 
@@ -93,7 +94,7 @@ export default function Verify() {
       // Search for the index number
       const { data, error } = await supabase
         .from('index_records')
-        .select('index_number, full_name, photo_url, organization, issued_at, expires_at, status, institutions(name)')
+        .select('index_number, full_name, photo_url, organization, issued_at, expires_at, status, metadata, institutions(name)')
         .eq('index_number', indexNumber.trim().toUpperCase())
         .eq('status', 'active')
         .maybeSingle();
