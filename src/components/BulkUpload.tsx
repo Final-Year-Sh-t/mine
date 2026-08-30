@@ -28,6 +28,7 @@ interface ParsedRecord {
   expires_at: string;
   photo_url?: string;
   status?: string;
+  registered_student?: string;
 }
 
 interface UploadResult {
@@ -43,7 +44,7 @@ interface BulkUploadProps {
 }
 
 const REQUIRED_COLUMNS = ['index_number', 'full_name', 'organization', 'issued_at', 'expires_at'];
-const OPTIONAL_COLUMNS = ['photo_url', 'status'];
+const OPTIONAL_COLUMNS = ['photo_url', 'status', 'registered_student'];
 
 export function BulkUpload({ institutionId, userId, onComplete }: BulkUploadProps) {
   const { toast } = useToast();
@@ -183,6 +184,7 @@ export function BulkUpload({ institutionId, userId, onComplete }: BulkUploadProp
         expires_at: formatDate(normalizedRow.expires_at),
         photo_url: normalizedRow.photo_url || undefined,
         status: normalizedRow.status || 'active',
+        registered_student: normalizedRow.registered_student || undefined,
       };
     });
   };
@@ -261,6 +263,10 @@ export function BulkUpload({ institutionId, userId, onComplete }: BulkUploadProp
           return null;
         }
 
+        // Parse registered_student: defaults to true unless explicitly false/no/0
+        const rawRegistered = (record.registered_student || '').toLowerCase().trim();
+        const isRegistered = !['false', 'no', '0', 'unregistered', 'not registered'].includes(rawRegistered);
+
         return {
           index_number: record.index_number.toUpperCase(),
           full_name: record.full_name,
@@ -271,6 +277,7 @@ export function BulkUpload({ institutionId, userId, onComplete }: BulkUploadProp
           status: (['active', 'inactive', 'expired'].includes(record.status || '') 
             ? record.status 
             : 'active') as 'active' | 'inactive' | 'expired',
+          metadata: { registered_student: isRegistered },
           created_by: userId,
           institution_id: institutionId,
         };
@@ -311,8 +318,8 @@ export function BulkUpload({ institutionId, userId, onComplete }: BulkUploadProp
     const headers = [...REQUIRED_COLUMNS, ...OPTIONAL_COLUMNS];
     const sampleData = [
       headers.join(','),
-      'ID-2024-001,John Doe,Engineering Department,2024-01-01,2025-12-31,,active',
-      'ID-2024-002,Jane Smith,Science Department,2024-01-01,2025-12-31,,inactive',
+      'ID-2024-001,John Doe,Engineering Department,2024-01-01,2025-12-31,,active,true',
+      'ID-2024-002,Jane Smith,Science Department,2024-01-01,2025-12-31,,inactive,false',
     ].join('\n');
 
     const blob = new Blob([sampleData], { type: 'text/csv' });
