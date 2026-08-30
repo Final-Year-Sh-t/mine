@@ -49,6 +49,7 @@ interface IndexRecord {
   issued_at: string;
   expires_at: string;
   status: 'active' | 'inactive' | 'expired';
+  metadata: Record<string, unknown> | null;
   created_at: string;
 }
 
@@ -100,6 +101,7 @@ export default function Admin() {
     issued_at: string;
     expires_at: string;
     status: RecordStatus;
+    registered_student: boolean;
   }>({
     index_number: '',
     full_name: '',
@@ -108,6 +110,7 @@ export default function Admin() {
     issued_at: '',
     expires_at: '',
     status: 'active',
+    registered_student: true,
   });
 
   useEffect(() => {
@@ -259,6 +262,7 @@ export default function Admin() {
             issued_at: formData.issued_at,
             expires_at: formData.expires_at,
             status: formData.status,
+            metadata: { registered_student: formData.registered_student },
           })
           .eq('id', editingRecord.id);
 
@@ -275,6 +279,7 @@ export default function Admin() {
             issued_at: formData.issued_at,
             expires_at: formData.expires_at,
             status: formData.status,
+            metadata: { registered_student: formData.registered_student },
             created_by: user?.id,
             institution_id: institutionId,
           });
@@ -306,6 +311,7 @@ export default function Admin() {
       issued_at: record.issued_at,
       expires_at: record.expires_at,
       status: record.status,
+      registered_student: (record.metadata as any)?.registered_student !== false,
     });
     setIsDialogOpen(true);
   };
@@ -375,6 +381,7 @@ export default function Admin() {
       issued_at: '',
       expires_at: '',
       status: 'active',
+      registered_student: true,
     });
   };
 
@@ -544,6 +551,21 @@ export default function Admin() {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="registered_student">Student Registration</Label>
+                  <Select
+                    value={formData.registered_student ? 'registered' : 'unregistered'}
+                    onValueChange={(value) => setFormData({ ...formData, registered_student: value === 'registered' })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="registered">Registered</SelectItem>
+                      <SelectItem value="unregistered">Not Registered</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="full_name">Full Name</Label>
