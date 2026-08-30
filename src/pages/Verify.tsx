@@ -187,7 +187,7 @@ export default function Verify() {
                       </div>
                     </>
                   ) : (
-                    <>
+                      <>
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/20">
                         <XCircle className="h-5 w-5 text-destructive" />
                       </div>
@@ -195,6 +195,9 @@ export default function Verify() {
                         <CardTitle className="text-lg font-display">Not Found</CardTitle>
                         <CardDescription>No verified record matches this identification number</CardDescription>
                       </div>
+                      <Badge variant="destructive" className="ml-auto">
+                        Not Registered
+                      </Badge>
                     </>
                   )}
                 </div>
@@ -253,9 +256,12 @@ export default function Verify() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Badge variant={isExpired ? 'destructive' : 'default'} className={!isExpired ? 'bg-success' : ''}>
                           {isExpired ? 'Expired' : 'Active'}
+                        </Badge>
+                        <Badge variant="outline" className="border-success text-success">
+                          Registered
                         </Badge>
                         <Badge variant="outline" className="uppercase">
                           {result.data.index_number}
