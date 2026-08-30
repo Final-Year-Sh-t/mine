@@ -136,6 +136,7 @@ export default function Verify() {
   };
 
   const isExpired = result?.data?.expires_at && new Date(result.data.expires_at) < new Date();
+  const isRegisteredStudent = result?.data ? result.data.metadata?.registered_student !== false : false;
 
   return (
     <Layout>
@@ -261,8 +262,8 @@ export default function Verify() {
                         <Badge variant={isExpired ? 'destructive' : 'default'} className={!isExpired ? 'bg-success' : ''}>
                           {isExpired ? 'Expired' : 'Active'}
                         </Badge>
-                        <Badge variant="outline" className="border-success text-success">
-                          Registered
+                        <Badge variant="outline" className={isRegisteredStudent ? 'border-success text-success' : 'border-destructive text-destructive'}>
+                          {isRegisteredStudent ? 'Registered' : 'Not Registered'}
                         </Badge>
                         <Badge variant="outline" className="uppercase">
                           {result.data.index_number}
