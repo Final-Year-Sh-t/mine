@@ -120,7 +120,9 @@ export default function Verify() {
 
       setResult({
         found: data !== null,
-        data: data || undefined,
+        data: data
+          ? { ...data, metadata: (data.metadata ?? null) as Record<string, unknown> | null }
+          : undefined,
       });
 
     } catch (err) {
