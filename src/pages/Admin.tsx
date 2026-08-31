@@ -673,15 +673,76 @@ const resetForm = () => {
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="photo_url">Photo URL (optional)</Label>
-                  <Input
-                    id="photo_url"
-                    type="url"
-                    placeholder="https://example.com/photo.jpg"
-                    value={formData.photo_url}
-                    onChange={(e) => setFormData({ ...formData, photo_url: e.target.value })}
+<div className="space-y-2">
+                  <Label>Photo (optional)</Label>
+                  {previewUrl ? (
+                    <div className="flex items-center gap-3 rounded-lg border border-border p-3">
+                      <img
+                        src={previewUrl}
+                        alt="Record photo preview"
+                        className="h-16 w-16 rounded-lg object-cover border border-border"
+                      />
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => photoInputRef.current?.click()}
+                          disabled={isUploadingPhoto}
+                        >
+                          {isUploadingPhoto ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          ) : (
+                            <ImagePlus className="h-4 w-4 mr-2" />
+                          )}
+                          Replace
+                        </Button>
+                        <Button type="button" variant="ghost" size="sm" className="text-destructive" onClick={handleRemovePhoto}>
+                          <X className="h-4 w-4 mr-2" />
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      className="flex flex-col items-center justify-center py-6 rounded-lg border border-dashed cursor-pointer hover:bg-secondary/50 transition-colors"
+                      onClick={() => photoInputRef.current?.click()}
+                    >
+                      {isUploadingPhoto ? (
+                        <Loader2 className="h-6 w-6 animate-spin text-primary mb-2" />
+                      ) : (
+                        <ImagePlus className="h-6 w-6 text-muted-foreground mb-2" />
+                      )}
+                      <p className="text-sm font-medium">{isUploadingPhoto ? 'Uploading...' : 'Click to upload a photo'}</p>
+                      <p className="text-xs text-muted-foreground mt-1">JPG, PNG or WebP — max 2MB</p>
+                    </div>
+                  )}
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                    disabled={isUploadingPhoto}
                   />
+                  <div className="pt-1">
+                    <Label htmlFor="photo_url" className="text-xs text-muted-foreground">
+                      ...or paste an image URL (optional)
+                    </Label>
+                    <Input
+                      id="photo_url"
+                      type="url"
+                      placeholder="https://example.com/photo.jpg"
+                      value={isStoragePhoto(formData.photo_url) ? '' : formData.photo_url}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value && isStoragePhoto(formData.photo_url)) {
+                          supabase.storage.from('identity-photos').remove([formData.photo_url]);
+                        }
+                        setFormData({ ...formData, photo_url: value });
+                      }}
+                    />
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -830,7 +891,7 @@ const resetForm = () => {
                                 <Button variant="ghost" size="icon" onClick={() => handleEdit(record)}>
                                   <Edit className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="icon" onClick={() => handleDelete(record.id)}>
+                                <Button variant="ghost" size="icon" onClick={() => handleDelete(record)}>
                                   <Trash2 className="h-4 w-4 text-destructive" />
                                 </Button>
                               </div>
