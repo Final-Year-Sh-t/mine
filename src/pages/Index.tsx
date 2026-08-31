@@ -102,7 +102,7 @@ export default function Index() {
                   camera-controls
                   shadow-intensity="1"
                   exposure="1"
-                  loading="lazy"
+                  loading="eager"
                   style={{ width: '100%', height: '100%', minHeight: '380px', backgroundColor: 'transparent' }}
                 />
               </div>
