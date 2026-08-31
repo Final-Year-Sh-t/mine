@@ -30,7 +30,24 @@ export default function Verify() {
   const { user, institutionId, isLoading: authLoading } = useAuth();
   const [indexNumber, setIndexNumber] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [result, setResult] = useState<VerificationResult | null>(null);
+const [result, setResult] = useState<VerificationResult | null>(null);
+  const [photoSrc, setPhotoSrc] = useState<string | null>(null);
+
+  // Resolve the record photo (storage path or external URL) into a displayable URL
+  useEffect(() => {
+    let cancelled = false;
+    const url = result?.found ? result.data?.photo_url ?? null : null;
+    if (!url) {
+      setPhotoSrc(null);
+      return;
+    }
+    resolvePhotoUrl(url).then((resolved) => {
+      if (!cancelled) setPhotoSrc(resolved);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [result]);
   const { toast } = useToast();
 
   if (authLoading) {
@@ -218,10 +235,10 @@ export default function Verify() {
                   )}
 
                   <div className="flex flex-col sm:flex-row gap-6">
-                    {result.data.photo_url ? (
+{photoSrc ? (
                       <div className="flex-shrink-0">
                         <img
-                          src={result.data.photo_url}
+                          src={photoSrc}
                           alt={result.data.full_name}
                           className="h-32 w-32 rounded-xl object-cover border border-border"
                         />
