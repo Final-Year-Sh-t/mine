@@ -29,7 +29,7 @@ export default function Index() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 lg:py-28">
+      <section className="relative overflow-hidden pt-6 lg:pt-10 pb-12 lg:pb-16">
         {/* Background Building Image */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 scale-105 pointer-events-none"
@@ -44,57 +44,32 @@ export default function Index() {
         </div>
 
         <div className="container relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            {/* Left Column: Text Layout */}
+          {/* Top Row: Left Text + Right 3D Object */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center mb-8 lg:mb-10">
+            {/* Left Column: Text */}
             <div className="text-left">
               {/* Eyebrow Label */}
-              <div className="inline-block mb-4 animate-fade-in">
+              <div className="inline-block mb-3 animate-fade-in">
                 <span className="text-[11px] md:text-xs font-bold uppercase tracking-[0.3em] bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
                   IDENTITY INFRASTRUCTURE
                 </span>
               </div>
 
               {/* Main Headline */}
-              <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-[66px] font-medium tracking-tight text-slate-900 leading-[1.08] mb-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+              <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-[66px] font-medium tracking-tight text-slate-900 leading-[1.08] mb-5 animate-slide-up" style={{ animationDelay: '0.1s' }}>
                 Digital Identity Verification<br />
                 Made Simple
               </h1>
 
               {/* Subtitle */}
-              <p className="text-lg md:text-xl text-slate-900 font-semibold mb-8 max-w-lg animate-slide-up" style={{ animationDelay: '0.2s' }}>
+              <p className="text-lg md:text-xl text-slate-900 font-semibold max-w-lg animate-slide-up" style={{ animationDelay: '0.2s' }}>
                 Securely verify identities using identification numbers. Fast, reliable, and compliant with the highest security standards.
               </p>
-
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center animate-slide-up" style={{ animationDelay: '0.3s' }}>
-                {user ? (
-                  <Link to="/verify">
-                    <Button size="lg" className="gradient-primary border-0 gap-2">
-                      Start Verifying
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                ) : (
-                  <>
-                    <Link to="/register">
-                      <Button size="lg" className="gradient-primary border-0 gap-2">
-                        Register Institution
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                    <Link to="/auth">
-                      <Button size="lg" variant="outline">
-                        Sign In
-                      </Button>
-                    </Link>
-                  </>
-                )}
-              </div>
             </div>
 
-            {/* Right Column: Symmetrical 3D Object Render */}
+            {/* Right Column: 3D Object Render */}
             <div className="flex justify-center items-center animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              <div className="w-full max-w-lg aspect-square relative flex items-center justify-center">
+              <div className="w-full max-w-md aspect-square relative flex items-center justify-center">
                 <model-viewer
                   src="/models/model3d1.glb"
                   alt="3D Model"
@@ -104,10 +79,36 @@ export default function Index() {
                   exposure="1"
                   loading="eager"
                   bounds="tight"
-                  style={{ width: '100%', height: '100%', minHeight: '440px', backgroundColor: 'transparent' }}
+                  style={{ width: '100%', height: '100%', minHeight: '380px', backgroundColor: 'transparent' }}
                 />
               </div>
             </div>
+          </div>
+
+          {/* Bottom Centered Action Row (Beneath both text and 3D model) */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-slide-up" style={{ animationDelay: '0.3s' }}>
+            {user ? (
+              <Link to="/verify">
+                <Button size="lg" className="gradient-primary border-0 gap-2 text-base px-8 h-12 shadow-lg hover:shadow-xl transition-all">
+                  Start Verifying
+                  <ArrowRight className="h-5 w-5" />
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/register">
+                  <Button size="lg" className="gradient-primary border-0 gap-2 text-base px-7 h-12 shadow-lg hover:shadow-xl transition-all">
+                    Register Institution
+                    <ArrowRight className="h-5 w-5" />
+                  </Button>
+                </Link>
+                <Link to="/auth">
+                  <Button size="lg" variant="outline" className="border-slate-300 bg-white/80 hover:bg-white text-slate-900 text-base px-7 h-12 shadow-sm">
+                    Sign In
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>
