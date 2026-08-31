@@ -44,9 +44,9 @@ export default function Index() {
         </div>
 
         <div className="container relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            {/* Left Column: Exact Text Layout */}
-            <div className="lg:col-span-7 text-left">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Left Column: Text Layout */}
+            <div className="text-left">
               {/* Eyebrow Label */}
               <div className="inline-block mb-4 animate-fade-in">
                 <span className="text-[11px] md:text-xs font-bold uppercase tracking-[0.3em] bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
@@ -55,13 +55,13 @@ export default function Index() {
               </div>
 
               {/* Main Headline */}
-              <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-[70px] font-medium tracking-tight text-slate-900 leading-[1.08] mb-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+              <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-[66px] font-medium tracking-tight text-slate-900 leading-[1.08] mb-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
                 Digital Identity Verification<br />
                 Made Simple
               </h1>
 
               {/* Subtitle */}
-              <p className="text-lg md:text-xl text-slate-900 font-semibold mb-8 max-w-xl animate-slide-up" style={{ animationDelay: '0.2s' }}>
+              <p className="text-lg md:text-xl text-slate-900 font-semibold mb-8 max-w-lg animate-slide-up" style={{ animationDelay: '0.2s' }}>
                 Securely verify identities using identification numbers. Fast, reliable, and compliant with the highest security standards.
               </p>
 
@@ -92,8 +92,8 @@ export default function Index() {
               </div>
             </div>
 
-            {/* Right Column: 3D Object Render */}
-            <div className="lg:col-span-5 flex justify-center items-center animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            {/* Right Column: Symmetrical 3D Object Render */}
+            <div className="flex justify-center items-center animate-fade-in" style={{ animationDelay: '0.2s' }}>
               <div className="w-full max-w-lg aspect-square relative flex items-center justify-center">
                 <model-viewer
                   src="/models/model3d1.glb"
@@ -103,7 +103,8 @@ export default function Index() {
                   shadow-intensity="1"
                   exposure="1"
                   loading="eager"
-                  style={{ width: '100%', height: '100%', minHeight: '380px', backgroundColor: 'transparent' }}
+                  bounds="tight"
+                  style={{ width: '100%', height: '100%', minHeight: '440px', backgroundColor: 'transparent' }}
                 />
               </div>
             </div>
