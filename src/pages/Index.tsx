@@ -73,12 +73,11 @@ export default function Index() {
                   src="/models/model3d1.glb"
                   alt="3D Model"
                   auto-rotate
-                  camera-controls
                   shadow-intensity="1"
                   exposure="1"
                   loading="eager"
                   bounds="tight"
-                  style={{ width: '100%', height: '100%', minHeight: '280px', backgroundColor: 'transparent' }}
+                  style={{ width: '100%', height: '100%', minHeight: '280px', backgroundColor: 'transparent', pointerEvents: 'none' }}
                 />
               </div>
             </div>
