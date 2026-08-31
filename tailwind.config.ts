@@ -17,6 +17,7 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         display: ['Space Grotesk', 'system-ui', 'sans-serif'],
         serif: ['"Playfair Display"', 'Georgia', 'serif'],
+        michroma: ['"Michroma"', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

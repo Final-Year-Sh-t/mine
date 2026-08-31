@@ -56,7 +56,7 @@ export default function Index() {
               </div>
 
               {/* Main Headline */}
-              <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-[66px] font-medium tracking-tight text-slate-900 leading-[1.08] mb-5 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+              <h1 className="font-michroma text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-normal tracking-tight text-slate-900 leading-[1.22] mb-5 animate-slide-up" style={{ animationDelay: '0.1s' }}>
                 Digital Identity Verification<br />
                 Made Simple
               </h1>
