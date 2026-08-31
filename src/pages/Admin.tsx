@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useAuth } from '@/lib/auth';
@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BulkUpload } from '@/components/BulkUpload';
 import { 
-  Plus, 
+Plus, 
   Loader2, 
   Users, 
   FileCheck, 
@@ -28,9 +28,12 @@ import {
   Shield,
   UserCog,
   Building2,
-  ChevronDown
+  ChevronDown,
+  ImagePlus,
+  X
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { isStoragePhoto, resolvePhotoUrl } from '@/lib/photo';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -91,7 +94,10 @@ export default function Admin() {
   const [isUpdatingRole, setIsUpdatingRole] = useState<string | null>(null);
   const [userInstitutions, setUserInstitutions] = useState<UserInstitution[]>([]);
   const [isSwitching, setIsSwitching] = useState(false);
-  const { toast } = useToast();
+const { toast } = useToast();
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   const [formData, setFormData] = useState<{
     index_number: string;
@@ -110,8 +116,23 @@ export default function Admin() {
     issued_at: '',
     expires_at: '',
     status: 'active',
-    registered_student: true,
+registered_student: true,
   });
+
+  // Resolve the stored photo value (storage path or external URL) into a displayable URL
+  useEffect(() => {
+    let cancelled = false;
+    if (!formData.photo_url) {
+      setPreviewUrl(null);
+      return;
+    }
+    resolvePhotoUrl(formData.photo_url).then((url) => {
+      if (!cancelled) setPreviewUrl(url);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [formData.photo_url]);
 
   useEffect(() => {
     if (user) {
@@ -316,14 +337,17 @@ export default function Admin() {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+const handleDelete = async (record: IndexRecord) => {
     if (!confirm('Are you sure you want to delete this record?')) return;
 
     try {
+      if (record.photo_url && isStoragePhoto(record.photo_url)) {
+        await supabase.storage.from('identity-photos').remove([record.photo_url]);
+      }
       const { error } = await supabase
         .from('index_records')
         .delete()
-        .eq('id', id);
+        .eq('id', record.id);
 
       if (error) throw error;
       toast({ title: 'Record deleted successfully' });
@@ -372,7 +396,7 @@ export default function Admin() {
     }
   };
 
-  const resetForm = () => {
+const resetForm = () => {
     setFormData({
       index_number: '',
       full_name: '',
@@ -383,6 +407,68 @@ export default function Admin() {
       status: 'active',
       registered_student: true,
     });
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const allowedTypes = ['jpg', 'jpeg', 'png', 'webp'];
+    if (!allowedTypes.includes(fileExt) || !file.type.startsWith('image/')) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please upload a JPG, PNG or WebP image.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: 'Please upload an image smaller than 2MB.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (!institutionId) {
+      toast({
+        title: 'Error',
+        description: 'No active institution.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    try {
+      const fileName = `${institutionId}/${crypto.randomUUID()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from('identity-photos')
+        .upload(fileName, file, { upsert: false, contentType: file.type });
+      if (uploadError) throw uploadError;
+
+      setFormData((prev) => ({ ...prev, photo_url: fileName }));
+      toast({ title: 'Photo uploaded successfully' });
+    } catch (error: any) {
+      console.error('Photo upload error:', error);
+      toast({
+        title: 'Upload failed',
+        description: error.message || 'Failed to upload photo.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploadingPhoto(false);
+      if (photoInputRef.current) photoInputRef.current.value = '';
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    const current = formData.photo_url;
+    setFormData((prev) => ({ ...prev, photo_url: '' }));
+    if (current && isStoragePhoto(current)) {
+      await supabase.storage.from('identity-photos').remove([current]);
+    }
   };
 
   if (authLoading) {
@@ -587,15 +673,76 @@ export default function Admin() {
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="photo_url">Photo URL (optional)</Label>
-                  <Input
-                    id="photo_url"
-                    type="url"
-                    placeholder="https://example.com/photo.jpg"
-                    value={formData.photo_url}
-                    onChange={(e) => setFormData({ ...formData, photo_url: e.target.value })}
+<div className="space-y-2">
+                  <Label>Photo (optional)</Label>
+                  {previewUrl ? (
+                    <div className="flex items-center gap-3 rounded-lg border border-border p-3">
+                      <img
+                        src={previewUrl}
+                        alt="Record photo preview"
+                        className="h-16 w-16 rounded-lg object-cover border border-border"
+                      />
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => photoInputRef.current?.click()}
+                          disabled={isUploadingPhoto}
+                        >
+                          {isUploadingPhoto ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          ) : (
+                            <ImagePlus className="h-4 w-4 mr-2" />
+                          )}
+                          Replace
+                        </Button>
+                        <Button type="button" variant="ghost" size="sm" className="text-destructive" onClick={handleRemovePhoto}>
+                          <X className="h-4 w-4 mr-2" />
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      className="flex flex-col items-center justify-center py-6 rounded-lg border border-dashed cursor-pointer hover:bg-secondary/50 transition-colors"
+                      onClick={() => photoInputRef.current?.click()}
+                    >
+                      {isUploadingPhoto ? (
+                        <Loader2 className="h-6 w-6 animate-spin text-primary mb-2" />
+                      ) : (
+                        <ImagePlus className="h-6 w-6 text-muted-foreground mb-2" />
+                      )}
+                      <p className="text-sm font-medium">{isUploadingPhoto ? 'Uploading...' : 'Click to upload a photo'}</p>
+                      <p className="text-xs text-muted-foreground mt-1">JPG, PNG or WebP — max 2MB</p>
+                    </div>
+                  )}
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                    disabled={isUploadingPhoto}
                   />
+                  <div className="pt-1">
+                    <Label htmlFor="photo_url" className="text-xs text-muted-foreground">
+                      ...or paste an image URL (optional)
+                    </Label>
+                    <Input
+                      id="photo_url"
+                      type="url"
+                      placeholder="https://example.com/photo.jpg"
+                      value={isStoragePhoto(formData.photo_url) ? '' : formData.photo_url}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value && isStoragePhoto(formData.photo_url)) {
+                          supabase.storage.from('identity-photos').remove([formData.photo_url]);
+                        }
+                        setFormData({ ...formData, photo_url: value });
+                      }}
+                    />
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -744,7 +891,7 @@ export default function Admin() {
                                 <Button variant="ghost" size="icon" onClick={() => handleEdit(record)}>
                                   <Edit className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="icon" onClick={() => handleDelete(record.id)}>
+                                <Button variant="ghost" size="icon" onClick={() => handleDelete(record)}>
                                   <Trash2 className="h-4 w-4 text-destructive" />
                                 </Button>
                               </div>
