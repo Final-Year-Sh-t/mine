@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useAuth } from '@/lib/auth';
@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BulkUpload } from '@/components/BulkUpload';
 import { 
-  Plus, 
+Plus, 
   Loader2, 
   Users, 
   FileCheck, 
@@ -28,9 +28,12 @@ import {
   Shield,
   UserCog,
   Building2,
-  ChevronDown
+  ChevronDown,
+  ImagePlus,
+  X
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { isStoragePhoto, resolvePhotoUrl } from '@/lib/photo';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -91,7 +94,10 @@ export default function Admin() {
   const [isUpdatingRole, setIsUpdatingRole] = useState<string | null>(null);
   const [userInstitutions, setUserInstitutions] = useState<UserInstitution[]>([]);
   const [isSwitching, setIsSwitching] = useState(false);
-  const { toast } = useToast();
+const { toast } = useToast();
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   const [formData, setFormData] = useState<{
     index_number: string;
@@ -110,8 +116,23 @@ export default function Admin() {
     issued_at: '',
     expires_at: '',
     status: 'active',
-    registered_student: true,
+registered_student: true,
   });
+
+  // Resolve the stored photo value (storage path or external URL) into a displayable URL
+  useEffect(() => {
+    let cancelled = false;
+    if (!formData.photo_url) {
+      setPreviewUrl(null);
+      return;
+    }
+    resolvePhotoUrl(formData.photo_url).then((url) => {
+      if (!cancelled) setPreviewUrl(url);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [formData.photo_url]);
 
   useEffect(() => {
     if (user) {
