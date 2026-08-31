@@ -60,20 +60,21 @@ If you've forgotten your password, contact your system administrator.`
 3. Click "Verify" to search
 
 The system will display the verification result:
-- **Found**: The identity is verified with full details including name, photo, organization, and validity dates
-- **Not Found**: No record matches the identification number
+
+Found: The identity is verified with full details including name, photo, organization, and validity dates.
+Not Found: No record matches the identification number.
 
 All verification attempts are logged for audit purposes.`
       },
       {
         title: 'Understanding Results',
-        content: `When a verification is successful, you'll see:
+        content: `When a verification is successful, you'll see the following details:
 
-- **Photo**: The person's ID photo (if available)
-- **Full Name**: The verified name
-- **Organization**: The associated organization
-- **Valid Period**: Issue and expiry dates
-- **Status**: Active or Expired
+Photo: The person's ID photo (if available)
+Full Name: The verified name
+Organization: The associated organization
+Valid Period: Issue and expiry dates
+Status: Active or Expired
 
 If the ID has expired, a warning will be displayed. Expired IDs should be renewed before they can be considered valid.`
       },
@@ -139,10 +140,10 @@ Logs are kept for audit and compliance purposes. The last 50 verifications are d
         title: 'Data Protection',
         content: `VerifyID implements multiple security measures:
 
-- **Encryption**: All data is encrypted in transit and at rest using industry-standard 256-bit encryption
-- **Authentication**: Secure password-based authentication with session management
-- **Authorization**: Role-based access control ensures users only access permitted features
-- **Audit Logging**: All verification attempts are logged for compliance
+Encryption: All data is encrypted in transit and at rest using industry-standard 256-bit encryption.
+Authentication: Secure password-based authentication with session management.
+Authorization: Role-based access control ensures users only access permitted features.
+Audit Logging: All verification attempts are logged for compliance.
 
 Your data is stored securely and never shared with third parties.`
       },
@@ -194,10 +195,10 @@ export default function Docs() {
           <div className="mx-auto max-w-2xl text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-1.5 text-sm mb-6">
               <BookOpen className="h-4 w-4 text-primary" />
-              <span>Documentation</span>
+              <span>Help</span>
             </div>
             <h1 className="font-display text-4xl font-bold tracking-tight mb-4">
-              VerifyID Documentation
+              VerifyID Help
             </h1>
             <p className="text-lg text-muted-foreground">
               Everything you need to know about using the identity verification system.

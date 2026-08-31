@@ -73,7 +73,7 @@ interface UserInstitution {
 type OnboardingStep = 'choice' | 'create' | 'join';
 
 export default function Dashboard() {
-  const { user, institution, institutionId, isLoading: authLoading, refreshAuth } = useAuth();
+  const { user, isAdmin, institution, institutionId, isLoading: authLoading, refreshAuth } = useAuth();
   const { toast } = useToast();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -309,33 +309,49 @@ export default function Dashboard() {
     return <Navigate to="/auth" replace />;
   }
 
-  const quickActions = [
-    {
-      icon: Search,
-      title: 'Verify Identity',
-      description: 'Search and verify records',
-      href: '/verify',
-      primary: true,
-    },
-    {
-      icon: Users,
-      title: 'Manage Records',
-      description: 'View all records',
-      href: '/admin',
-    },
-    {
-      icon: Settings,
-      title: 'Settings',
-      description: 'Configure your account',
-      href: '/settings',
-    },
-    {
-      icon: FileText,
-      title: 'Documentation',
-      description: 'API & guides',
-      href: '/docs',
-    },
-  ];
+  const quickActions = isAdmin
+    ? [
+        {
+          icon: Search,
+          title: 'Verify Identity',
+          description: 'Search and verify records',
+          href: '/verify',
+          primary: true,
+        },
+        {
+          icon: Users,
+          title: 'Manage Records',
+          description: 'View all records',
+          href: '/admin',
+        },
+        {
+          icon: Settings,
+          title: 'Settings',
+          description: 'Configure your account',
+          href: '/settings',
+        },
+        {
+          icon: FileText,
+          title: 'Help',
+          description: 'API & guides',
+          href: '/docs',
+        },
+      ]
+    : [
+        {
+          icon: Search,
+          title: 'Verify Identity',
+          description: 'Search and verify records',
+          href: '/verify',
+          primary: true,
+        },
+        {
+          icon: FileText,
+          title: 'Help',
+          description: 'API & guides',
+          href: '/docs',
+        },
+      ];
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -791,7 +807,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display text-lg font-semibold">Recent Activity</h2>
               {stats?.recentVerifications && stats.recentVerifications.length > 0 && (
-                <Link to="/verify" className="text-sm text-primary hover:underline flex items-center gap-1">
+                <Link to="/activity" className="text-sm text-primary hover:underline flex items-center gap-1">
                   View all <ArrowRight className="h-3 w-3" />
                 </Link>
               )}

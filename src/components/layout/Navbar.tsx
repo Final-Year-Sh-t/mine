@@ -5,7 +5,7 @@ import { Shield, FileText, Search, Settings, LogOut, Menu, X, Building2, Cog, La
 import { useState } from 'react';
 
 export function Navbar() {
-  const { user, isAdmin, isSuperAdmin, institution, signOut } = useAuth();
+  const { user, isAdmin, isSuperAdmin, institution, institutionId, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -17,8 +17,8 @@ export function Navbar() {
 
   const navLinks = [
     { to: '/dashboard', label: 'Home', icon: LayoutDashboard, requiresAuth: true },
-    { to: '/verify', label: 'Verify', icon: Search, requiresAuth: true },
-    { to: '/docs', label: 'Documentation', icon: FileText, requiresAuth: false },
+    ...(institutionId || isSuperAdmin ? [{ to: '/verify', label: 'Verify', icon: Search, requiresAuth: true }] : []),
+    { to: '/docs', label: 'Help', icon: FileText, requiresAuth: false },
     ...(isAdmin ? [
       { to: '/admin', label: 'Admin', icon: Settings, requiresAuth: true },
       { to: '/settings', label: 'Settings', icon: Cog, requiresAuth: true },

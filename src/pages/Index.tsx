@@ -22,11 +22,6 @@ const features = [
   },
 ];
 
-const stats = [
-  { value: '99.9%', label: 'Uptime' },
-  { value: '<1s', label: 'Verification Time' },
-  { value: '256-bit', label: 'Encryption' },
-];
 
 export default function Index() {
   const { user } = useAuth();
@@ -76,15 +71,6 @@ export default function Index() {
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="mx-auto mt-16 grid max-w-2xl grid-cols-3 gap-8 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="font-display text-3xl font-bold text-primary-foreground">{stat.value}</div>
-                <div className="text-sm text-primary-foreground/60">{stat.label}</div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 

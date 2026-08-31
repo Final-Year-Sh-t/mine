@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useAuth } from '@/lib/auth';
@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Search, Loader2, CheckCircle2, XCircle, User, Building2, Calendar, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { resolvePhotoUrl } from '@/lib/photo';
 
 interface VerificationResult {
   found: boolean;
@@ -17,9 +18,11 @@ interface VerificationResult {
     full_name: string;
     photo_url: string | null;
     organization: string;
+    institutions: { name: string } | null;
     issued_at: string;
     expires_at: string;
     status: string;
+    metadata: Record<string, unknown> | null;
   };
 }
 
@@ -27,7 +30,24 @@ export default function Verify() {
   const { user, institutionId, isLoading: authLoading } = useAuth();
   const [indexNumber, setIndexNumber] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [result, setResult] = useState<VerificationResult | null>(null);
+const [result, setResult] = useState<VerificationResult | null>(null);
+  const [photoSrc, setPhotoSrc] = useState<string | null>(null);
+
+  // Resolve the record photo (storage path or external URL) into a displayable URL
+  useEffect(() => {
+    let cancelled = false;
+    const url = result?.found ? result.data?.photo_url ?? null : null;
+    if (!url) {
+      setPhotoSrc(null);
+      return;
+    }
+    resolvePhotoUrl(url).then((resolved) => {
+      if (!cancelled) setPhotoSrc(resolved);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [result]);
   const { toast } = useToast();
 
   if (authLoading) {
@@ -42,6 +62,35 @@ export default function Verify() {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  if (!institutionId) {
+    return (
+      <Layout>
+        <div className="container py-12">
+          <Card className="mx-auto max-w-xl border-destructive/50">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/20">
+                  <AlertCircle className="h-5 w-5 text-destructive" />
+                </div>
+                <div>
+                  <CardTitle className="font-display text-lg">Access Restricted</CardTitle>
+                  <CardDescription>
+                    You must be a member of an institution to verify identities.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Join or register an institution from your dashboard to gain access to verification.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </Layout>
+    );
   }
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -63,7 +112,7 @@ export default function Verify() {
       // Search for the index number
       const { data, error } = await supabase
         .from('index_records')
-        .select('index_number, full_name, photo_url, organization, issued_at, expires_at, status')
+        .select('index_number, full_name, photo_url, organization, issued_at, expires_at, status, metadata, institutions(name)')
         .eq('index_number', indexNumber.trim().toUpperCase())
         .eq('status', 'active')
         .maybeSingle();
@@ -89,7 +138,9 @@ export default function Verify() {
 
       setResult({
         found: data !== null,
-        data: data || undefined,
+        data: data
+          ? { ...data, metadata: (data.metadata ?? null) as Record<string, unknown> | null }
+          : undefined,
       });
 
     } catch (err) {
@@ -105,6 +156,7 @@ export default function Verify() {
   };
 
   const isExpired = result?.data?.expires_at && new Date(result.data.expires_at) < new Date();
+  const isRegisteredStudent = result?.data ? result.data.metadata?.registered_student !== false : false;
 
   return (
     <Layout>
@@ -157,7 +209,7 @@ export default function Verify() {
                       </div>
                     </>
                   ) : (
-                    <>
+                      <>
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/20">
                         <XCircle className="h-5 w-5 text-destructive" />
                       </div>
@@ -165,6 +217,9 @@ export default function Verify() {
                         <CardTitle className="text-lg font-display">Not Found</CardTitle>
                         <CardDescription>No verified record matches this identification number</CardDescription>
                       </div>
+                      <Badge variant="destructive" className="ml-auto">
+                        Not Registered
+                      </Badge>
                     </>
                   )}
                 </div>
@@ -180,10 +235,10 @@ export default function Verify() {
                   )}
 
                   <div className="flex flex-col sm:flex-row gap-6">
-                    {result.data.photo_url ? (
+{photoSrc ? (
                       <div className="flex-shrink-0">
                         <img
-                          src={result.data.photo_url}
+                          src={photoSrc}
                           alt={result.data.full_name}
                           className="h-32 w-32 rounded-xl object-cover border border-border"
                         />
@@ -206,7 +261,9 @@ export default function Verify() {
                             <Building2 className="h-3 w-3" />
                             Organization
                           </div>
-                          <div className="font-medium">{result.data.organization}</div>
+                          <div className="font-medium">
+                            {result.data.institutions?.name ?? result.data.organization}
+                          </div>
                         </div>
 
                         <div>
@@ -221,9 +278,12 @@ export default function Verify() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Badge variant={isExpired ? 'destructive' : 'default'} className={!isExpired ? 'bg-success' : ''}>
                           {isExpired ? 'Expired' : 'Active'}
+                        </Badge>
+                        <Badge variant="outline" className={isRegisteredStudent ? 'border-success text-success' : 'border-destructive text-destructive'}>
+                          {isRegisteredStudent ? 'Registered' : 'Not Registered'}
                         </Badge>
                         <Badge variant="outline" className="uppercase">
                           {result.data.index_number}
