@@ -29,22 +29,34 @@ export default function Index() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative overflow-hidden gradient-hero py-24 lg:py-32">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(220_90%_50%/0.15),transparent_50%)]" />
-        <div className="container relative">
-          <div className="mx-auto max-w-3xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm text-primary-foreground mb-6 animate-fade-in">
-              <Shield className="h-4 w-4" />
-              <span>Trusted Identity Verification</span>
+      <section className="relative overflow-hidden bg-gradient-to-b from-slate-50/80 via-blue-50/30 to-background py-24 lg:py-32">
+        {/* Ambient Mesh Glow */}
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
+          <div className="absolute -top-24 left-1/6 w-96 h-96 bg-amber-100/50 rounded-full blur-3xl" />
+          <div className="absolute top-0 right-1/6 w-96 h-96 bg-sky-200/40 rounded-full blur-3xl" />
+        </div>
+
+        <div className="container relative z-10">
+          <div className="mx-auto max-w-4xl text-center">
+            {/* Eyebrow Label */}
+            <div className="inline-block mb-5 animate-fade-in">
+              <span className="text-[11px] md:text-xs font-bold uppercase tracking-[0.3em] bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                IDENTITY INFRASTRUCTURE
+              </span>
             </div>
-            <h1 className="font-display text-4xl font-bold tracking-tight text-primary-foreground sm:text-5xl lg:text-6xl mb-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-              Digital Identity{' '}
-              <span className="text-gradient">Verification</span>{' '}
+
+            {/* Main Headline */}
+            <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-[76px] font-medium tracking-tight text-slate-900 leading-[1.08] mb-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+              Digital Identity Verification<br />
               Made Simple
             </h1>
-            <p className="text-lg text-primary-foreground/70 mb-8 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+
+            {/* Subtitle */}
+            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '0.2s' }}>
               Securely verify identities using identification numbers. Fast, reliable, and compliant with the highest security standards.
             </p>
+
+            {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up" style={{ animationDelay: '0.3s' }}>
               {user ? (
                 <Link to="/verify">
@@ -62,7 +74,7 @@ export default function Index() {
                     </Button>
                   </Link>
                   <Link to="/auth">
-                    <Button size="lg" variant="outline" className="border-white/30 bg-white/10 text-white hover:bg-white/20 w-full sm:w-auto">
+                    <Button size="lg" variant="outline" className="w-full sm:w-auto">
                       Sign In
                     </Button>
                   </Link>
@@ -70,7 +82,6 @@ export default function Index() {
               )}
             </div>
           </div>
-
         </div>
       </section>
 
