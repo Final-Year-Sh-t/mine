@@ -337,14 +337,17 @@ registered_student: true,
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+const handleDelete = async (record: IndexRecord) => {
     if (!confirm('Are you sure you want to delete this record?')) return;
 
     try {
+      if (record.photo_url && isStoragePhoto(record.photo_url)) {
+        await supabase.storage.from('identity-photos').remove([record.photo_url]);
+      }
       const { error } = await supabase
         .from('index_records')
         .delete()
-        .eq('id', id);
+        .eq('id', record.id);
 
       if (error) throw error;
       toast({ title: 'Record deleted successfully' });
@@ -393,7 +396,7 @@ registered_student: true,
     }
   };
 
-  const resetForm = () => {
+const resetForm = () => {
     setFormData({
       index_number: '',
       full_name: '',
@@ -404,6 +407,68 @@ registered_student: true,
       status: 'active',
       registered_student: true,
     });
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const allowedTypes = ['jpg', 'jpeg', 'png', 'webp'];
+    if (!allowedTypes.includes(fileExt) || !file.type.startsWith('image/')) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please upload a JPG, PNG or WebP image.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: 'Please upload an image smaller than 2MB.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (!institutionId) {
+      toast({
+        title: 'Error',
+        description: 'No active institution.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    try {
+      const fileName = `${institutionId}/${crypto.randomUUID()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from('identity-photos')
+        .upload(fileName, file, { upsert: false, contentType: file.type });
+      if (uploadError) throw uploadError;
+
+      setFormData((prev) => ({ ...prev, photo_url: fileName }));
+      toast({ title: 'Photo uploaded successfully' });
+    } catch (error: any) {
+      console.error('Photo upload error:', error);
+      toast({
+        title: 'Upload failed',
+        description: error.message || 'Failed to upload photo.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploadingPhoto(false);
+      if (photoInputRef.current) photoInputRef.current.value = '';
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    const current = formData.photo_url;
+    setFormData((prev) => ({ ...prev, photo_url: '' }));
+    if (current && isStoragePhoto(current)) {
+      await supabase.storage.from('identity-photos').remove([current]);
+    }
   };
 
   if (authLoading) {
