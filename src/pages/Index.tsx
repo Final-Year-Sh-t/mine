@@ -29,7 +29,7 @@ export default function Index() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-6 lg:pt-10 pb-12 lg:pb-16">
+      <section className="relative overflow-hidden pt-6 sm:pt-10 lg:pt-12 pb-10 sm:pb-14 lg:pb-16 px-4 sm:px-6">
         {/* Background Building Image */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 scale-105 pointer-events-none"
@@ -47,29 +47,28 @@ export default function Index() {
           {/* Top Row: Left Text + Right 3D Object */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center mb-8 lg:mb-10">
             {/* Left Column: Text */}
-            <div className="text-left">
+            <div className="text-center lg:text-left">
               {/* Eyebrow Label */}
               <div className="inline-block mb-3 animate-fade-in">
-                <span className="text-[11px] md:text-xs font-bold uppercase tracking-[0.3em] bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                <span className="text-[10px] sm:text-[11px] md:text-xs font-bold uppercase tracking-[0.25em] bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
                   IDENTITY INFRASTRUCTURE
                 </span>
               </div>
 
               {/* Main Headline */}
-              <h1 className="font-michroma text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-normal tracking-tight text-slate-900 leading-[1.22] mb-5 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-                Digital Identity Verification<br />
-                Made Simple
+              <h1 className="font-michroma text-2xl sm:text-3xl md:text-4xl lg:text-[50px] font-normal tracking-tight text-slate-900 leading-[1.25] sm:leading-[1.2] mb-4 sm:mb-5 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                Digital Identity Verification<br className="hidden sm:inline" /> Made Simple
               </h1>
 
               {/* Subtitle */}
-              <p className="text-lg md:text-xl text-slate-900 font-semibold max-w-lg animate-slide-up" style={{ animationDelay: '0.2s' }}>
+              <p className="text-base sm:text-lg md:text-xl text-slate-900 font-semibold max-w-lg mx-auto lg:mx-0 animate-slide-up" style={{ animationDelay: '0.2s' }}>
                 Securely verify identities using identification numbers. Fast, reliable, and compliant with the highest security standards.
               </p>
             </div>
 
             {/* Right Column: 3D Object Render */}
             <div className="flex justify-center items-center animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              <div className="w-full max-w-md aspect-square relative flex items-center justify-center">
+              <div className="w-full max-w-sm sm:max-w-md aspect-square relative flex items-center justify-center">
                 <model-viewer
                   src="/models/model3d1.glb"
                   alt="3D Model"
@@ -79,31 +78,31 @@ export default function Index() {
                   exposure="1"
                   loading="eager"
                   bounds="tight"
-                  style={{ width: '100%', height: '100%', minHeight: '380px', backgroundColor: 'transparent' }}
+                  style={{ width: '100%', height: '100%', minHeight: '280px', backgroundColor: 'transparent' }}
                 />
               </div>
             </div>
           </div>
 
           {/* Bottom Centered Action Row (Beneath both text and 3D model) */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-slide-up" style={{ animationDelay: '0.3s' }}>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center w-full max-w-md sm:max-w-none mx-auto animate-slide-up" style={{ animationDelay: '0.3s' }}>
             {user ? (
-              <Link to="/verify">
-                <Button size="lg" className="gradient-primary border-0 gap-2 text-base px-8 h-12 shadow-lg hover:shadow-xl transition-all">
+              <Link to="/verify" className="w-full sm:w-auto">
+                <Button size="lg" className="gradient-primary border-0 gap-2 text-base px-8 h-12 w-full sm:w-auto shadow-lg hover:shadow-xl transition-all">
                   Start Verifying
                   <ArrowRight className="h-5 w-5" />
                 </Button>
               </Link>
             ) : (
               <>
-                <Link to="/register">
-                  <Button size="lg" className="gradient-primary border-0 gap-2 text-base px-7 h-12 shadow-lg hover:shadow-xl transition-all">
+                <Link to="/register" className="w-full sm:w-auto">
+                  <Button size="lg" className="gradient-primary border-0 gap-2 text-base px-7 h-12 w-full sm:w-auto shadow-lg hover:shadow-xl transition-all">
                     Register Institution
                     <ArrowRight className="h-5 w-5" />
                   </Button>
                 </Link>
-                <Link to="/auth">
-                  <Button size="lg" variant="outline" className="border-slate-300 bg-white/80 hover:bg-white text-slate-900 text-base px-7 h-12 shadow-sm">
+                <Link to="/auth" className="w-full sm:w-auto">
+                  <Button size="lg" variant="outline" className="border-slate-300 bg-white/80 hover:bg-white text-slate-900 text-base px-7 h-12 w-full sm:w-auto shadow-sm">
                     Sign In
                   </Button>
                 </Link>
