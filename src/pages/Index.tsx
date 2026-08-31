@@ -29,65 +29,83 @@ export default function Index() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-24 lg:py-32">
+      <section className="relative overflow-hidden py-20 lg:py-28">
         {/* Background Building Image */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-50 scale-105 pointer-events-none transition-opacity duration-500"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 scale-105 pointer-events-none"
           style={{ backgroundImage: `url('/hero-bg.jpg')` }}
         />
 
-        {/* Ambient Gradient Overlays for Vivid Image Pop & Text Contrast */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-50/75 via-blue-50/55 to-background pointer-events-none" />
+        {/* Ambient Gradient Overlays for Readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-50/85 via-blue-50/65 to-background pointer-events-none" />
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
           <div className="absolute -top-24 left-1/6 w-96 h-96 bg-amber-200/35 rounded-full blur-3xl" />
           <div className="absolute top-0 right-1/6 w-96 h-96 bg-sky-300/35 rounded-full blur-3xl" />
         </div>
 
         <div className="container relative z-10">
-          <div className="mx-auto max-w-4xl text-center">
-            {/* Eyebrow Label */}
-            <div className="inline-block mb-5 animate-fade-in">
-              <span className="text-[11px] md:text-xs font-bold uppercase tracking-[0.3em] bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent drop-shadow-sm">
-                IDENTITY INFRASTRUCTURE
-              </span>
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            {/* Left Column: Exact Text Layout */}
+            <div className="lg:col-span-7 text-left">
+              {/* Eyebrow Label */}
+              <div className="inline-block mb-4 animate-fade-in">
+                <span className="text-[11px] md:text-xs font-bold uppercase tracking-[0.3em] bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  IDENTITY INFRASTRUCTURE
+                </span>
+              </div>
 
-            {/* Main Headline */}
-            <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-[76px] font-medium tracking-tight text-slate-900 leading-[1.08] mb-6 animate-slide-up drop-shadow-sm" style={{ animationDelay: '0.1s' }}>
-              Digital Identity Verification<br />
-              Made Simple
-            </h1>
+              {/* Main Headline */}
+              <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-[70px] font-medium tracking-tight text-slate-900 leading-[1.08] mb-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                Digital Identity Verification<br />
+                Made Simple
+              </h1>
 
+              {/* Subtitle */}
+              <p className="text-lg md:text-xl text-slate-900 font-semibold mb-8 max-w-xl animate-slide-up" style={{ animationDelay: '0.2s' }}>
+                Securely verify identities using identification numbers. Fast, reliable, and compliant with the highest security standards.
+              </p>
 
-            {/* Subtitle */}
-            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              Securely verify identities using identification numbers. Fast, reliable, and compliant with the highest security standards.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up" style={{ animationDelay: '0.3s' }}>
-              {user ? (
-                <Link to="/verify">
-                  <Button size="lg" className="gradient-primary border-0 gap-2 w-full sm:w-auto">
-                    Start Verifying
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-              ) : (
-                <>
-                  <Link to="/register">
-                    <Button size="lg" className="gradient-primary border-0 gap-2 w-full sm:w-auto">
-                      Register Institution
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center animate-slide-up" style={{ animationDelay: '0.3s' }}>
+                {user ? (
+                  <Link to="/verify">
+                    <Button size="lg" className="gradient-primary border-0 gap-2">
+                      Start Verifying
                       <ArrowRight className="h-4 w-4" />
                     </Button>
                   </Link>
-                  <Link to="/auth">
-                    <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                      Sign In
-                    </Button>
-                  </Link>
-                </>
-              )}
+                ) : (
+                  <>
+                    <Link to="/register">
+                      <Button size="lg" className="gradient-primary border-0 gap-2">
+                        Register Institution
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Link to="/auth">
+                      <Button size="lg" variant="outline">
+                        Sign In
+                      </Button>
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Right Column: 3D Object Render */}
+            <div className="lg:col-span-5 flex justify-center items-center animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <div className="w-full max-w-lg aspect-square relative flex items-center justify-center">
+                <model-viewer
+                  src="/models/model3d1.glb"
+                  alt="3D Model"
+                  auto-rotate
+                  camera-controls
+                  shadow-intensity="1"
+                  exposure="1"
+                  loading="lazy"
+                  style={{ width: '100%', height: '100%', minHeight: '380px', backgroundColor: 'transparent' }}
+                />
+              </div>
             </div>
           </div>
         </div>
