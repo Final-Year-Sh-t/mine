@@ -29,27 +29,35 @@ export default function Index() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-slate-50/80 via-blue-50/30 to-background py-24 lg:py-32">
-        {/* Ambient Mesh Glow */}
+      <section className="relative overflow-hidden py-24 lg:py-32">
+        {/* Background Building Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-50 scale-105 pointer-events-none transition-opacity duration-500"
+          style={{ backgroundImage: `url('/hero-bg.jpg')` }}
+        />
+
+        {/* Ambient Gradient Overlays for Vivid Image Pop & Text Contrast */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-50/75 via-blue-50/55 to-background pointer-events-none" />
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
-          <div className="absolute -top-24 left-1/6 w-96 h-96 bg-amber-100/50 rounded-full blur-3xl" />
-          <div className="absolute top-0 right-1/6 w-96 h-96 bg-sky-200/40 rounded-full blur-3xl" />
+          <div className="absolute -top-24 left-1/6 w-96 h-96 bg-amber-200/35 rounded-full blur-3xl" />
+          <div className="absolute top-0 right-1/6 w-96 h-96 bg-sky-300/35 rounded-full blur-3xl" />
         </div>
 
         <div className="container relative z-10">
           <div className="mx-auto max-w-4xl text-center">
             {/* Eyebrow Label */}
             <div className="inline-block mb-5 animate-fade-in">
-              <span className="text-[11px] md:text-xs font-bold uppercase tracking-[0.3em] bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-[11px] md:text-xs font-bold uppercase tracking-[0.3em] bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent drop-shadow-sm">
                 IDENTITY INFRASTRUCTURE
               </span>
             </div>
 
             {/* Main Headline */}
-            <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-[76px] font-medium tracking-tight text-slate-900 leading-[1.08] mb-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+            <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl lg:text-[76px] font-medium tracking-tight text-slate-900 leading-[1.08] mb-6 animate-slide-up drop-shadow-sm" style={{ animationDelay: '0.1s' }}>
               Digital Identity Verification<br />
               Made Simple
             </h1>
+
 
             {/* Subtitle */}
             <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '0.2s' }}>
