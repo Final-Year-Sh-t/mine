@@ -73,6 +73,8 @@ export default function Index() {
                   src="/models/model3d1.glb"
                   alt="3D Model"
                   auto-rotate
+                  auto-rotate-delay="0"
+                  rotation-per-second="20deg"
                   shadow-intensity="1"
                   exposure="1"
                   loading="eager"
