@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { Shield, Mail, Lock, User, ArrowLeft, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
-import { Shield, Mail, Lock, User, ArrowLeft, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 
@@ -145,20 +145,8 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 overflow-hidden">
-      {/* Background shapes */}
-      <div 
-        className={`fixed w-[80vw] md:w-[60vw] h-[80vw] md:h-[60vw] max-w-[800px] max-h-[800px] rounded-full bg-primary/20 blur-3xl transition-all duration-700 ease-in-out ${
-          isSignUp ? 'top-[-30%] right-[-20%] md:top-[-20%] md:right-[-10%]' : 'top-[-30%] left-[-20%] md:top-[-20%] md:left-[-10%]'
-        }`}
-      />
-      <div 
-        className={`fixed w-[60vw] md:w-[40vw] h-[60vw] md:h-[40vw] max-w-[500px] max-h-[500px] rounded-full bg-accent/30 blur-3xl transition-all duration-700 ease-in-out ${
-          isSignUp ? 'bottom-[-20%] left-[-10%] md:bottom-[-15%] md:left-[-5%]' : 'bottom-[-20%] right-[-10%] md:bottom-[-15%] md:right-[-5%]'
-        }`}
-      />
-
-      {/* Back to home link */}
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4 md:p-6 relative overflow-hidden">
+      {/* Back link */}
       <Link
         to="/"
         className="fixed top-4 left-4 md:top-6 md:left-6 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors z-50"
@@ -167,319 +155,160 @@ export default function Auth() {
         <span className="hidden sm:inline">Back to home</span>
       </Link>
 
-      {/* Mobile Layout */}
-      <div className="w-full max-w-md md:hidden">
-        <div className="bg-card rounded-2xl shadow-2xl border border-border/50 overflow-hidden">
-          {/* Header with gradient */}
-          <div className="gradient-primary p-6 text-center">
-            <Shield className="w-12 h-12 mx-auto mb-3 text-primary-foreground" />
-            <h1 className="text-2xl font-display font-bold text-primary-foreground">
-              {isSignUp ? 'Create Account' : 'Welcome Back'}
-            </h1>
-            <p className="text-primary-foreground/80 text-sm mt-1">
-              {isSignUp ? 'Sign up to get started' : 'Sign in to continue'}
-            </p>
-          </div>
+      {/* Main Auth Wrapper */}
+      <div className={`auth-wrapper ${isSignUp ? 'toggled' : ''}`}>
+        {/* Background Geometric Shapes */}
+        <div className="background-shape" />
+        <div className="secondary-shape" />
 
-          {/* Form */}
-          <div className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {isSignUp && (
-                <FloatingInput
-                  id="mobile-fullName"
-                  name="fullName"
-                  type="text"
-                  label="Full Name"
-                  icon={<User className="h-5 w-5" />}
-                  value={formData.fullName}
-                  onChange={handleInputChange}
-                  error={errors.fullName}
-                />
-              )}
-              <FloatingInput
-                id="mobile-email"
-                name="email"
+        {/* Sign In Credentials Panel */}
+        <div className="credentials-panel signin">
+          <h2 className="slide-element">Login</h2>
+          <form onSubmit={handleSubmit}>
+            <div className="field-wrapper slide-element">
+              <input
                 type="email"
-                label="Email"
-                icon={<Mail className="h-5 w-5" />}
+                name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                error={errors.email}
+                required
               />
-              <FloatingInput
-                id="mobile-password"
-                name="password"
+              <label>Email</label>
+              <Mail className="input-icon" />
+            </div>
+            <div className="field-wrapper slide-element">
+              <input
                 type="password"
-                label="Password"
-                icon={<Lock className="h-5 w-5" />}
+                name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                error={errors.password}
-                showToggle
+                required
               />
-              {isSignUp && (
-                <FloatingInput
-                  id="mobile-confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  label="Confirm Password"
-                  icon={<Lock className="h-5 w-5" />}
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                error={errors.confirmPassword}
-                showToggle
-                />
-              )}
-              {!isSignUp && (
-                <div className="text-right -mt-2">
-                  <Link to="/forgot-password" className="text-sm text-primary hover:underline">
-                    Forgot password?
-                  </Link>
-                </div>
-              )}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-3 gradient-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    {isSignUp ? 'Creating account...' : 'Signing in...'}
-                  </>
-                ) : (
-                  isSignUp ? 'Get Started' : 'Sign In'
-                )}
-              </button>
-            </form>
-
-            <p className="mt-6 text-center text-muted-foreground text-sm">
-              {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
-              <button onClick={toggleMode} className="text-primary font-medium hover:underline">
-                {isSignUp ? 'Sign In' : 'Get Started'}
-              </button>
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop/Tablet Layout */}
-      <div className="hidden md:block relative w-full max-w-4xl h-[600px] rounded-2xl overflow-hidden shadow-2xl border border-border/50 bg-card">
-        
-        {/* Welcome Section - slides left/right */}
-        <div 
-          className={`absolute inset-y-0 w-1/2 gradient-primary flex items-center justify-center transition-all duration-700 ease-in-out z-20 ${
-            isSignUp ? 'left-0 rounded-r-[100px]' : 'left-1/2 rounded-l-[100px]'
-          }`}
-        >
-          <div className="text-center text-primary-foreground px-8">
-            <Shield className="w-16 h-16 mx-auto mb-6 animate-fade-in" />
-            <h2 className="text-4xl font-display font-bold mb-4 animate-fade-in">WELCOME!</h2>
-            <p className="text-primary-foreground/80 animate-fade-in">
-              {isSignUp ? 'Already have an account?' : "Don't have an account?"}
-            </p>
-            <button
-              onClick={toggleMode}
-              className="mt-4 px-8 py-2 border-2 border-primary-foreground/50 rounded-full text-primary-foreground hover:bg-primary-foreground/10 transition-colors animate-fade-in"
-            >
-              {isSignUp ? 'Sign In' : 'Get Started'}
-            </button>
-          </div>
-        </div>
-
-        {/* Sign In Form */}
-        <div 
-          className={`absolute inset-y-0 left-0 w-1/2 flex items-center justify-center p-8 transition-all duration-700 ease-in-out ${
-            isSignUp ? 'opacity-0 pointer-events-none translate-x-[-50%]' : 'opacity-100 translate-x-0'
-          }`}
-        >
-          <div className="w-full max-w-sm">
-            <h2 className="text-3xl font-display font-bold text-foreground mb-8 text-center">Sign In</h2>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <FloatingInput
-                id="signin-email"
-                name="email"
-                type="email"
-                label="Email"
-                icon={<Mail className="h-5 w-5" />}
-                value={formData.email}
-                onChange={handleInputChange}
-                error={errors.email}
-              />
-              <FloatingInput
-                id="signin-password"
-                name="password"
-                type="password"
-                label="Password"
-                icon={<Lock className="h-5 w-5" />}
-                value={formData.password}
-                onChange={handleInputChange}
-                error={errors.password}
-                showToggle
-              />
-              <div className="text-right -mt-2">
-                <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+              <label>Password</label>
+              <Lock className="input-icon" />
+            </div>
+            {errors.email && <p className="error-text">{errors.email}</p>}
+            {errors.password && <p className="error-text">{errors.password}</p>}
+            {!isSignUp && (
+              <div className="text-right mt-2 slide-element">
+                <Link to="/forgot-password" className="text-xs text-primary hover:underline">
                   Forgot password?
                 </Link>
               </div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-3 gradient-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-              >
+            )}
+            <div className="field-wrapper slide-element">
+              <button className="submit-button" type="submit" disabled={isLoading}>
                 {isLoading ? (
-                  <>
+                  <span className="flex items-center justify-center gap-2">
                     <Loader2 className="h-5 w-5 animate-spin" />
                     Signing in...
-                  </>
+                  </span>
                 ) : (
-                  'Sign In'
+                  'Login'
                 )}
               </button>
-            </form>
-          </div>
+            </div>
+            <div className="switch-link slide-element">
+              <p>
+                Don't have an account? <br />
+                <a href="#" onClick={(e) => { e.preventDefault(); toggleMode(); }} className="register-trigger">
+                  Sign Up
+                </a>
+              </p>
+            </div>
+          </form>
         </div>
 
-        {/* Sign Up Form */}
-        <div 
-          className={`absolute inset-y-0 right-0 w-1/2 flex items-center justify-center p-8 transition-all duration-700 ease-in-out ${
-            isSignUp ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none translate-x-[50%]'
-          }`}
-        >
-          <div className="w-full max-w-sm">
-            <h2 className="text-3xl font-display font-bold text-foreground mb-8 text-center">Get Started</h2>
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <FloatingInput
-                id="signup-fullName"
-                name="fullName"
+        {/* Welcome Section for Sign In */}
+        <div className="welcome-section signin">
+          <Shield className="w-16 h-16 mx-auto mb-4 slide-element" style={{ color: 'hsl(var(--primary-foreground))' }} />
+          <h2 className="slide-element">WELCOME!</h2>
+        </div>
+
+        {/* Sign Up Credentials Panel */}
+        <div className="credentials-panel signup">
+          <h2 className="slide-element">Register</h2>
+          <form onSubmit={handleSubmit}>
+            <div className="field-wrapper slide-element">
+              <input
                 type="text"
-                label="Full Name"
-                icon={<User className="h-5 w-5" />}
+                name="fullName"
                 value={formData.fullName}
                 onChange={handleInputChange}
-                error={errors.fullName}
+                required
               />
-              <FloatingInput
-                id="signup-email"
-                name="email"
+              <label>Full Name</label>
+              <User className="input-icon" />
+            </div>
+            <div className="field-wrapper slide-element">
+              <input
                 type="email"
-                label="Email"
-                icon={<Mail className="h-5 w-5" />}
+                name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                error={errors.email}
+                required
               />
-              <FloatingInput
-                id="signup-password"
-                name="password"
+              <label>Email</label>
+              <Mail className="input-icon" />
+            </div>
+            <div className="field-wrapper slide-element">
+              <input
                 type="password"
-                label="Password"
-                icon={<Lock className="h-5 w-5" />}
+                name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                error={errors.password}
-                showToggle
+                required
               />
-              <FloatingInput
-                id="signup-confirmPassword"
-                name="confirmPassword"
+              <label>Password</label>
+              <Lock className="input-icon" />
+            </div>
+            <div className="field-wrapper slide-element">
+              <input
                 type="password"
-                label="Confirm Password"
-                icon={<Lock className="h-5 w-5" />}
+                name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
-                error={errors.confirmPassword}
-                showToggle
+                required
               />
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-3 gradient-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-              >
+              <label>Confirm Password</label>
+              <Lock className="input-icon" />
+            </div>
+            {Object.keys(errors).length > 0 && (
+              <div className="error-text">
+                {Object.values(errors).map((error, i) => (
+                  <p key={i}>{error}</p>
+                ))}
+              </div>
+            )}
+            <div className="field-wrapper slide-element">
+              <button className="submit-button" type="submit" disabled={isLoading}>
                 {isLoading ? (
-                  <>
+                  <span className="flex items-center justify-center gap-2">
                     <Loader2 className="h-5 w-5 animate-spin" />
                     Creating account...
-                  </>
+                  </span>
                 ) : (
-                  'Get Started'
+                  'Register'
                 )}
               </button>
-            </form>
-          </div>
+            </div>
+            <div className="switch-link slide-element">
+              <p>
+                Already have an account? <br />
+                <a href="#" onClick={(e) => { e.preventDefault(); toggleMode(); }} className="login-trigger">
+                  Sign In
+                </a>
+              </p>
+            </div>
+          </form>
+        </div>
+
+        {/* Welcome Section for Sign Up */}
+        <div className="welcome-section signup">
+          <Shield className="w-16 h-16 mx-auto mb-4 slide-element" style={{ color: 'hsl(var(--primary-foreground))' }} />
+          <h2 className="slide-element">WELCOME!</h2>
         </div>
       </div>
-    </div>
-  );
-}
-
-// Floating label input component
-interface FloatingInputProps {
-  id: string;
-  name: string;
-  type: string;
-  label: string;
-  icon: React.ReactNode;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  error?: string;
-  showToggle?: boolean;
-}
-
-function FloatingInput({ id, name, type, label, icon, value, onChange, error, showToggle }: FloatingInputProps) {
-  const [isFocused, setIsFocused] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const isActive = isFocused || value.length > 0;
-  const inputType = showToggle && showPassword ? 'text' : type;
-
-  return (
-    <div className="relative">
-      <div className="relative">
-        <input
-          id={id}
-          name={name}
-          type={inputType}
-          value={value}
-          onChange={onChange}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          className={`w-full px-4 py-3 pl-12 bg-muted/50 border rounded-lg outline-none transition-all duration-300 text-foreground ${
-            showToggle ? 'pr-12' : 'pr-4'
-          } ${
-            error 
-              ? 'border-destructive focus:border-destructive' 
-              : 'border-border focus:border-primary'
-          }`}
-        />
-        <label
-          htmlFor={id}
-          className={`absolute left-12 transition-all duration-300 pointer-events-none ${
-            isActive 
-              ? 'top-0 -translate-y-1/2 text-xs bg-card px-1 text-primary' 
-              : 'top-1/2 -translate-y-1/2 text-muted-foreground'
-          }`}
-        >
-          {label}
-        </label>
-        <span className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 ${
-          isActive ? 'text-primary' : 'text-muted-foreground'
-        }`}>
-          {icon}
-        </span>
-        {showToggle && (
-          <button
-            type="button"
-            onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
-          >
-            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-          </button>
-        )}
-      </div>
-      {error && (
-        <p className="mt-1 text-sm text-destructive">{error}</p>
-      )}
     </div>
   );
 }
