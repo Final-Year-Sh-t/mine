@@ -51,12 +51,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { isAdmin: false, isSuperAdmin: false, institutionId: null };
       }
 
+      // Fetch profile institution_id as secondary fallback
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('institution_id')
+        .eq('user_id', userId)
+        .maybeSingle();
+
       const approvedRoles = roles?.filter((r: any) => !r.status || r.status === 'approved') ?? [];
       const hasSuperAdmin = roles?.some((r) => r.role === 'super_admin') ?? false;
 
-      // Prefer the explicitly active institution among approved roles
+      // Prefer the explicitly active institution among approved roles, or profile institution, or first approved role
       const activeInstitutionId =
         approvedRoles.find((r) => r.is_active && r.institution_id)?.institution_id ??
+        (profile?.institution_id && approvedRoles.some((r) => r.institution_id === profile.institution_id) ? profile.institution_id : null) ??
         approvedRoles.find((r) => r.institution_id)?.institution_id ??
         null;
 
