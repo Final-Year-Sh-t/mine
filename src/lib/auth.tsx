@@ -103,7 +103,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Defer role and institution check with setTimeout to avoid deadlock
         if (session?.user) {
           setTimeout(async () => {
             const result = await checkRolesAndInstitution(session.user.id);
@@ -117,12 +116,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             } else {
               setInstitution(null);
             }
+            setIsLoading(false);
           }, 0);
         } else {
           setIsAdmin(false);
           setIsSuperAdmin(false);
           setInstitutionId(null);
           setInstitution(null);
+          setIsLoading(false);
         }
       }
     );
