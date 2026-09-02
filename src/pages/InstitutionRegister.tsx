@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Building2, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
 import { z } from 'zod';
+import { useAuth } from '@/lib/auth';
+import { useInstitution } from '@/lib/contexts/InstitutionContext';
 
 const registrationSchema = z.object({
   institutionName: z.string().trim().min(2, 'Institution name must be at least 2 characters').max(100, 'Institution name must be less than 100 characters'),
@@ -16,7 +17,8 @@ const registrationSchema = z.object({
 export default function InstitutionRegister() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, signInWithOAuth, refreshAuth } = useAuth();
+  const { user, signInWithOAuth } = useAuth();
+  const { refreshInstitution } = useInstitution();
   const [isLoading, setIsLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
   const [institutionName, setInstitutionName] = useState('');
@@ -28,9 +30,10 @@ export default function InstitutionRegister() {
       const { error } = await signInWithOAuth(provider);
       if (error) throw error;
     } catch (err: any) {
+      console.error('OAuth sign in error:', err);
       toast({
-        title: 'Authentication error',
-        description: err.message || 'Failed to authenticate via OAuth.',
+        title: 'Authentication Error',
+        description: err.message,
         variant: 'destructive',
       });
     } finally {
@@ -42,9 +45,13 @@ export default function InstitutionRegister() {
     e.preventDefault();
     setErrors({});
 
-    const validation = registrationSchema.safeParse({ institutionName });
-    if (!validation.success) {
-      setErrors({ institutionName: validation.error.errors[0].message });
+    const result = registrationSchema.safeParse({ institutionName });
+    if (!result.success) {
+      const formatted: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) formatted[err.path[0] as string] = err.message;
+      });
+      setErrors(formatted);
       return;
     }
 
@@ -77,7 +84,7 @@ export default function InstitutionRegister() {
         description: 'Welcome to your new institution dashboard.',
       });
 
-      await refreshAuth();
+      await refreshInstitution();
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Institution creation error:', error);

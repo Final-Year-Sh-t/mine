@@ -52,7 +52,8 @@ interface SuperAdminUser {
 }
 
 export default function SuperAdmin() {
-  const { user, isSuperAdmin, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
+  const { isSuperAdmin } = useInstitution();
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [admins, setAdmins] = useState<InstitutionAdmin[]>([]);
   const [superAdmins, setSuperAdmins] = useState<SuperAdminUser[]>([]);

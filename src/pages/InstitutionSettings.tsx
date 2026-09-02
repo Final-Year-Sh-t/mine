@@ -45,7 +45,8 @@ const staffInviteSchema = z.object({
 });
 
 export default function InstitutionSettings() {
-  const { user, isAdmin, institutionId, institution, isLoading: authLoading, refreshAuth } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
+  const { isAdmin, institutionId, institution, refreshInstitution } = useInstitution();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
