@@ -7,15 +7,23 @@ import { Button } from '@/components/ui/button';
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState<string | null>(null);
-  const { signInWithOAuth, user } = useAuth();
+  const { signInWithOAuth, user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
+    if (!authLoading && user) {
+      navigate('/dashboard', { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const handleOAuthLogin = async (provider: 'google' | 'github') => {
     setIsLoading(provider);
