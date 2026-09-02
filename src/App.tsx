@@ -23,28 +23,30 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/register" element={<InstitutionRegister />} />
-            <Route path="/verify" element={<Verify />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/settings" element={<InstitutionSettings />} />
-            <Route path="/super-admin" element={<SuperAdmin />} />
-            <Route path="/docs" element={<Docs />} />
-            <Route path="/activity" element={<Activity />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <InstitutionProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/register" element={<InstitutionRegister />} />
+              <Route path="/verify" element={<Verify />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/settings" element={<InstitutionSettings />} />
+              <Route path="/super-admin" element={<SuperAdmin />} />
+              <Route path="/docs" element={<Docs />} />
+              <Route path="/activity" element={<Activity />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </InstitutionProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
