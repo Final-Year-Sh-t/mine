@@ -84,7 +84,8 @@ interface UserInstitution {
 }
 
 export default function Admin() {
-  const { user, isAdmin, institution, institutionId, isLoading: authLoading, refreshAuth } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
+  const { isAdmin, institution, institutionId, refreshInstitution } = useInstitution();
   const [records, setRecords] = useState<IndexRecord[]>([]);
   const [logs, setLogs] = useState<VerificationLog[]>([]);
   const [members, setMembers] = useState<Member[]>([]);

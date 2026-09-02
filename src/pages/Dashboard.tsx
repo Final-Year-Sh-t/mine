@@ -78,7 +78,8 @@ interface UserInstitution {
 type OnboardingStep = 'choice' | 'create' | 'join';
 
 export default function Dashboard() {
-  const { user, isAdmin, institution, institutionId, isLoading: authLoading, refreshAuth } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
+  const { isAdmin, institution, institutionId, userInstitutions, refreshInstitution } = useInstitution();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -100,9 +101,6 @@ export default function Dashboard() {
   const [showInstitutionModal, setShowInstitutionModal] = useState(false);
   const [showConfirmSwitch, setShowConfirmSwitch] = useState(false);
   const [pendingAction, setPendingAction] = useState<'create' | 'join' | null>(null);
-  
-  // User institutions list
-  const [userInstitutions, setUserInstitutions] = useState<UserInstitution[]>([]);
   const [isSwitching, setIsSwitching] = useState(false);
 
   // Check if user has an OAuth provider linked
@@ -235,7 +233,7 @@ export default function Dashboard() {
         description: 'You are now the admin of your institution.',
       });
 
-      await refreshAuth();
+      await refreshInstitution();
       await fetchUserInstitutions();
       setInstitutionName('');
       setShowInstitutionModal(false);
@@ -339,7 +337,7 @@ export default function Dashboard() {
         description: 'Your request to join the institution is pending administrator approval.',
       });
 
-      await refreshAuth();
+      await refreshInstitution();
       await fetchUserInstitutions();
       setJoinCode('');
       setSearchResults([]);
@@ -374,7 +372,7 @@ export default function Dashboard() {
         description: 'You are now viewing a different institution.',
       });
       
-      await refreshAuth();
+      await refreshInstitution();
       await fetchUserInstitutions();
     } catch (error: any) {
       console.error('Switch error:', error);

@@ -1,11 +1,13 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
+import { useInstitution } from '@/lib/contexts/InstitutionContext';
 import { Button } from '@/components/ui/button';
 import { Shield, FileText, Search, Settings, LogOut, Menu, X, Building2, Cog, LayoutDashboard } from 'lucide-react';
 import { useState } from 'react';
 
 export function Navbar() {
-  const { user, isAdmin, isSuperAdmin, institution, institutionId, signOut } = useAuth();
+  const { user, signOut } = useAuth();
+  const { isAdmin, isSuperAdmin, institution, institutionId } = useInstitution();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
