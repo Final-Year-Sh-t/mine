@@ -34,7 +34,7 @@ interface InstitutionContextType {
 const InstitutionContext = createContext<InstitutionContextType | undefined>(undefined);
 
 export function InstitutionProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [institutionId, setInstitutionId] = useState<string | null>(null);
   const [institution, setInstitution] = useState<Institution | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -124,6 +124,11 @@ export function InstitutionProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshInstitution = async () => {
+    if (authLoading) {
+      setIsLoading(true);
+      return;
+    }
+
     if (!user) {
       setInstitutionId(null);
       setInstitution(null);
@@ -135,28 +140,33 @@ export function InstitutionProvider({ children }: { children: ReactNode }) {
     }
 
     setIsLoading(true);
-    const [roleResult, instList] = await Promise.all([
-      checkRolesAndInstitution(user.id),
-      fetchUserInstitutions(user.id),
-    ]);
+    try {
+      const [roleResult, instList] = await Promise.all([
+        checkRolesAndInstitution(user.id),
+        fetchUserInstitutions(user.id),
+      ]);
 
-    setIsAdmin(roleResult.isAdmin);
-    setIsSuperAdmin(roleResult.isSuperAdmin);
-    setInstitutionId(roleResult.institutionId);
-    setUserInstitutions(instList);
+      setIsAdmin(roleResult.isAdmin);
+      setIsSuperAdmin(roleResult.isSuperAdmin);
+      setInstitutionId(roleResult.institutionId);
+      setUserInstitutions(instList);
 
-    if (roleResult.institutionId) {
-      const instData = await fetchInstitution(roleResult.institutionId);
-      setInstitution(instData);
-    } else {
-      setInstitution(null);
+      if (roleResult.institutionId) {
+        const instData = await fetchInstitution(roleResult.institutionId);
+        setInstitution(instData);
+      } else {
+        setInstitution(null);
+      }
+    } catch (error) {
+      console.error('Error in refreshInstitution:', error);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   useEffect(() => {
     refreshInstitution();
-  }, [user?.id]);
+  }, [user?.id, authLoading]);
 
   return (
     <InstitutionContext.Provider
@@ -166,7 +176,7 @@ export function InstitutionProvider({ children }: { children: ReactNode }) {
         isAdmin,
         isSuperAdmin,
         userInstitutions,
-        isLoading,
+        isLoading: isLoading || authLoading,
         refreshInstitution,
       }}
     >
