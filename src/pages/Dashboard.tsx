@@ -104,13 +104,17 @@ export default function Dashboard() {
 
   // Check if user has an OAuth provider linked
   const checkHasOAuthProvider = () => {
-    if (!user) return false;
-    const providers = (user.app_metadata as any)?.providers || [];
-    const identities = user.identities || [];
-    return (
-      providers.some((p: string) => p !== 'email') ||
-      identities.some((id: any) => id.provider !== 'email')
-    );
+    try {
+      if (!user) return false;
+      const providers: string[] = (user as any)?.app_metadata?.providers || [];
+      const identities: any[] = (user as any)?.identities || [];
+      const hasOAuthProvider = Array.isArray(providers) && providers.some((p: string) => typeof p === 'string' && p !== 'email');
+      const hasOAuthIdentity = Array.isArray(identities) && identities.some((id: any) => id?.provider && id?.provider !== 'email');
+      return hasOAuthProvider || hasOAuthIdentity;
+    } catch (err) {
+      console.error('Error checking OAuth provider:', err);
+      return false;
+    }
   };
 
   // Auto-join handling after returning from linkIdentity redirect
@@ -217,6 +221,12 @@ export default function Dashboard() {
 
       if (error) throw error;
 
+      if (newInstitutionId) {
+        await supabase.rpc('switch_active_institution', {
+          _institution_id: newInstitutionId,
+        });
+      }
+
       toast({
         title: 'Institution created!',
         description: 'You are now the admin of your institution.',
@@ -225,13 +235,7 @@ export default function Dashboard() {
       await refreshAuth();
       await fetchUserInstitutions();
       setInstitutionName('');
-      setOnboardingStep('choice');
       setShowInstitutionModal(false);
-
-      // If something is still off, keep a visible hint in console
-      if (!newInstitutionId) {
-        console.warn('Institution created but no id returned from RPC');
-      }
     } catch (error: any) {
       console.error('Create institution error:', error);
       toast({
@@ -298,17 +302,29 @@ export default function Dashboard() {
   };
 
   const handleJoinInstitution = async () => {
-    if (!user || !selectedInstitution) return;
-
-    // Check if user has an OAuth provider linked
-    const hasOAuth = checkHasOAuthProvider();
-    if (!hasOAuth) {
-      setShowLinkIdentityModal(true);
+    console.log('handleJoinInstitution triggered:', { userId: user?.id, selectedInstitution });
+    if (!user || !selectedInstitution) {
+      console.warn('handleJoinInstitution missing user or selectedInstitution');
+      toast({
+        title: 'Please select an institution',
+        description: 'Choose an institution from the list before requesting to join.',
+        variant: 'destructive',
+      });
       return;
     }
 
-    setIsOnboardingLoading(true);
     try {
+      // Check if user has an OAuth provider linked
+      const hasOAuth = checkHasOAuthProvider();
+      console.log('checkHasOAuthProvider result:', hasOAuth);
+
+      if (!hasOAuth) {
+        setShowInstitutionModal(false);
+        setShowLinkIdentityModal(true);
+        return;
+      }
+
+      setIsOnboardingLoading(true);
       const { error } = await supabase.rpc('join_institution_for_current_user', {
         _institution_id: selectedInstitution,
       });

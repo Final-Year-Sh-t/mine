@@ -60,11 +60,17 @@ export default function InstitutionRegister() {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.rpc('create_institution_for_current_user', {
+      const { data: newInstitutionId, error } = await supabase.rpc('create_institution_for_current_user', {
         _name: institutionName.trim(),
       });
 
       if (error) throw error;
+
+      if (newInstitutionId) {
+        await supabase.rpc('switch_active_institution', {
+          _institution_id: newInstitutionId,
+        });
+      }
 
       toast({
         title: 'Institution created!',
