@@ -104,13 +104,17 @@ export default function Dashboard() {
 
   // Check if user has an OAuth provider linked
   const checkHasOAuthProvider = () => {
-    if (!user) return false;
-    const providers = (user.app_metadata as any)?.providers || [];
-    const identities = user.identities || [];
-    return (
-      providers.some((p: string) => p !== 'email') ||
-      identities.some((id: any) => id.provider !== 'email')
-    );
+    try {
+      if (!user) return false;
+      const providers: string[] = (user as any)?.app_metadata?.providers || [];
+      const identities: any[] = (user as any)?.identities || [];
+      const hasOAuthProvider = Array.isArray(providers) && providers.some((p: string) => typeof p === 'string' && p !== 'email');
+      const hasOAuthIdentity = Array.isArray(identities) && identities.some((id: any) => id?.provider && id?.provider !== 'email');
+      return hasOAuthProvider || hasOAuthIdentity;
+    } catch (err) {
+      console.error('Error checking OAuth provider:', err);
+      return false;
+    }
   };
 
   // Auto-join handling after returning from linkIdentity redirect
@@ -217,6 +221,12 @@ export default function Dashboard() {
 
       if (error) throw error;
 
+      if (newInstitutionId) {
+        await supabase.rpc('switch_active_institution', {
+          _institution_id: newInstitutionId,
+        });
+      }
+
       toast({
         title: 'Institution created!',
         description: 'You are now the admin of your institution.',
@@ -225,13 +235,7 @@ export default function Dashboard() {
       await refreshAuth();
       await fetchUserInstitutions();
       setInstitutionName('');
-      setOnboardingStep('choice');
       setShowInstitutionModal(false);
-
-      // If something is still off, keep a visible hint in console
-      if (!newInstitutionId) {
-        console.warn('Institution created but no id returned from RPC');
-      }
     } catch (error: any) {
       console.error('Create institution error:', error);
       toast({
@@ -298,17 +302,29 @@ export default function Dashboard() {
   };
 
   const handleJoinInstitution = async () => {
-    if (!user || !selectedInstitution) return;
-
-    // Check if user has an OAuth provider linked
-    const hasOAuth = checkHasOAuthProvider();
-    if (!hasOAuth) {
-      setShowLinkIdentityModal(true);
+    console.log('handleJoinInstitution triggered:', { userId: user?.id, selectedInstitution });
+    if (!user || !selectedInstitution) {
+      console.warn('handleJoinInstitution missing user or selectedInstitution');
+      toast({
+        title: 'Please select an institution',
+        description: 'Choose an institution from the list before requesting to join.',
+        variant: 'destructive',
+      });
       return;
     }
 
-    setIsOnboardingLoading(true);
     try {
+      // Check if user has an OAuth provider linked
+      const hasOAuth = checkHasOAuthProvider();
+      console.log('checkHasOAuthProvider result:', hasOAuth);
+
+      if (!hasOAuth) {
+        setShowInstitutionModal(false);
+        setShowLinkIdentityModal(true);
+        return;
+      }
+
+      setIsOnboardingLoading(true);
       const { error } = await supabase.rpc('join_institution_for_current_user', {
         _institution_id: selectedInstitution,
       });
@@ -367,6 +383,69 @@ export default function Dashboard() {
     } finally {
       setIsSwitching(false);
     }
+  };
+
+  const getSelectedMembership = () => {
+    if (!selectedInstitution) return null;
+    return userInstitutions.find((ui) => ui.institution_id === selectedInstitution);
+  };
+
+  const renderSmartActionButton = (isModal = false) => {
+    const membership = getSelectedMembership();
+
+    if (membership?.status === 'approved') {
+      return (
+        <Button
+          onClick={() => {
+            if (selectedInstitution) {
+              handleSwitchInstitution(selectedInstitution);
+              if (isModal) setShowInstitutionModal(false);
+            }
+          }}
+          className={`flex-1 ${isModal ? '' : 'gradient-primary border-0'}`}
+          disabled={isOnboardingLoading || isSwitching || !selectedInstitution}
+        >
+          {isSwitching ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              Switching...
+            </>
+          ) : (
+            'Enter Institution'
+          )}
+        </Button>
+      );
+    }
+
+    if (membership?.status === 'pending') {
+      return (
+        <Button
+          disabled
+          variant="outline"
+          className="flex-1 border-amber-500/30 text-amber-600 bg-amber-500/10 cursor-not-allowed font-medium"
+        >
+          <Clock className="h-4 w-4 mr-2" />
+          Pending Approval
+        </Button>
+      );
+    }
+
+    return (
+      <Button
+        onClick={handleJoinInstitution}
+        className={`flex-1 ${isModal ? '' : 'gradient-primary border-0'}`}
+        disabled={isOnboardingLoading || !selectedInstitution}
+      >
+        {isOnboardingLoading ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            Submitting Request...
+          </>
+        ) : (
+          'Request to Join'
+        )}
+      </Button>
+    );
   };
 
   if (authLoading) {
@@ -637,20 +716,36 @@ export default function Dashboard() {
                     <div className="space-y-2">
                       <Label>Select Institution</Label>
                       <div className="space-y-2 max-h-48 overflow-y-auto">
-                        {searchResults.map((inst) => (
-                          <div
-                            key={inst.id}
-                            onClick={() => setSelectedInstitution(inst.id)}
-                            className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                              selectedInstitution === inst.id
-                                ? 'border-primary bg-primary/5'
-                                : 'border-border hover:border-primary/50'
-                            }`}
-                          >
-                            <div className="font-medium">{inst.name}</div>
-                            <div className="text-xs text-muted-foreground font-mono">{inst.slug}</div>
-                          </div>
-                        ))}
+                        {searchResults.map((inst) => {
+                          const membership = userInstitutions.find((ui) => ui.institution_id === inst.id);
+                          return (
+                            <div
+                              key={inst.id}
+                              onClick={() => setSelectedInstitution(inst.id)}
+                              className={`p-3 rounded-lg border cursor-pointer transition-colors flex items-center justify-between ${
+                                selectedInstitution === inst.id
+                                  ? 'border-primary bg-primary/5'
+                                  : 'border-border hover:border-primary/50'
+                              }`}
+                            >
+                              <div>
+                                <div className="font-medium text-sm">{inst.name}</div>
+                                <div className="text-xs text-muted-foreground font-mono">{inst.slug}</div>
+                              </div>
+                              {membership?.status === 'approved' && (
+                                <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 text-xs">
+                                  Member
+                                </Badge>
+                              )}
+                              {membership?.status === 'pending' && (
+                                <Badge variant="outline" className="border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10 text-xs flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  Pending
+                                </Badge>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -669,20 +764,7 @@ export default function Dashboard() {
                     >
                       Back
                     </Button>
-                    <Button
-                      onClick={handleJoinInstitution}
-                      className="flex-1 gradient-primary border-0"
-                      disabled={isOnboardingLoading || !selectedInstitution}
-                    >
-                      {isOnboardingLoading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          Submitting Request...
-                        </>
-                      ) : (
-                        'Request to Join'
-                      )}
-                    </Button>
+                    {renderSmartActionButton(false)}
                   </div>
                 </CardContent>
               </Card>
@@ -1134,20 +1216,36 @@ export default function Dashboard() {
                 <div className="space-y-2">
                   <Label>Select Institution</Label>
                   <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {searchResults.map((inst) => (
-                      <div
-                        key={inst.id}
-                        onClick={() => setSelectedInstitution(inst.id)}
-                        className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                          selectedInstitution === inst.id
-                            ? 'border-primary bg-primary/5'
-                            : 'border-border hover:border-primary/50'
-                        }`}
-                      >
-                        <div className="font-medium text-sm">{inst.name}</div>
-                        <div className="text-xs text-muted-foreground font-mono">{inst.slug}</div>
-                      </div>
-                    ))}
+                    {searchResults.map((inst) => {
+                      const membership = userInstitutions.find((ui) => ui.institution_id === inst.id);
+                      return (
+                        <div
+                          key={inst.id}
+                          onClick={() => setSelectedInstitution(inst.id)}
+                          className={`p-3 rounded-lg border cursor-pointer transition-colors flex items-center justify-between ${
+                            selectedInstitution === inst.id
+                              ? 'border-primary bg-primary/5'
+                              : 'border-border hover:border-primary/50'
+                          }`}
+                        >
+                          <div>
+                            <div className="font-medium text-sm">{inst.name}</div>
+                            <div className="text-xs text-muted-foreground font-mono">{inst.slug}</div>
+                          </div>
+                          {membership?.status === 'approved' && (
+                            <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 text-xs">
+                              Member
+                            </Badge>
+                          )}
+                          {membership?.status === 'pending' && (
+                            <Badge variant="outline" className="border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10 text-xs flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              Pending
+                            </Badge>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -1166,20 +1264,7 @@ export default function Dashboard() {
                 >
                   Back
                 </Button>
-                <Button
-                  onClick={handleJoinInstitution}
-                  className="flex-1"
-                  disabled={isOnboardingLoading || !selectedInstitution}
-                >
-                  {isOnboardingLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Joining...
-                    </>
-                  ) : (
-                    'Join Institution'
-                  )}
-                </Button>
+                {renderSmartActionButton(true)}
               </div>
             </div>
           )}
