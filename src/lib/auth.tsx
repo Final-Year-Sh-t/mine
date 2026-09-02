@@ -68,6 +68,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         approvedRoles.find((r) => r.institution_id)?.institution_id ??
         null;
 
+      // If an approved institution exists but is_active is false, sync is_active in background
+      if (activeInstitutionId && !approvedRoles.some((r) => r.is_active && r.institution_id === activeInstitutionId)) {
+        supabase.rpc('switch_active_institution', { _institution_id: activeInstitutionId }).then(({ error }) => {
+          if (error) console.error('Error auto-activating institution:', error);
+        });
+      }
+
       // Admin should be scoped to the active institution (super_admin overrides)
       const hasAdminForActiveInstitution = activeInstitutionId
         ? approvedRoles.some((r) => r.role === 'admin' && r.institution_id === activeInstitutionId) ?? false
