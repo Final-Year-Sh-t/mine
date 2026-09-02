@@ -3,10 +3,11 @@ import { Navigate, Link } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Search, 
@@ -68,6 +69,7 @@ interface UserInstitution {
   institution_slug: string;
   role: string;
   is_active: boolean;
+  status?: 'pending' | 'approved' | 'rejected';
 }
 
 type OnboardingStep = 'choice' | 'create' | 'join';
@@ -242,8 +244,8 @@ export default function Dashboard() {
       if (error) throw error;
 
       toast({
-        title: 'Joined successfully!',
-        description: 'You have joined the institution.',
+        title: 'Request Submitted!',
+        description: 'Your request to join the institution is pending administrator approval.',
       });
 
       await refreshAuth();
@@ -257,7 +259,7 @@ export default function Dashboard() {
       console.error('Join error:', error);
       toast({
         title: 'Error',
-        description: error.message || 'Failed to join institution.',
+        description: error.message || 'Failed to submit join request.',
         variant: 'destructive',
       });
     } finally {
@@ -410,6 +412,39 @@ export default function Dashboard() {
               </p>
             </div>
 
+            {userInstitutions.some((inst) => inst.status === 'pending') && (
+              <Card className="border-amber-500/20 bg-amber-500/5 mb-6">
+                <CardContent className="p-6 space-y-3">
+                  <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-semibold">
+                    <Clock className="h-5 w-5" />
+                    <span>Pending Join Requests</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Your request to join the following institution(s) is pending administrator approval:
+                  </p>
+                  <div className="space-y-2 pt-1">
+                    {userInstitutions
+                      .filter((inst) => inst.status === 'pending')
+                      .map((inst) => (
+                        <div
+                          key={inst.institution_id}
+                          className="flex items-center justify-between p-3 rounded-lg border border-amber-500/20 bg-card"
+                        >
+                          <div>
+                            <div className="font-medium text-sm">{inst.institution_name}</div>
+                            <div className="text-xs text-muted-foreground font-mono">{inst.institution_slug}</div>
+                          </div>
+                          <Badge variant="outline" className="border-amber-500/50 text-amber-600 dark:text-amber-400 bg-amber-500/10 flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            Pending Approval
+                          </Badge>
+                        </div>
+                      ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {onboardingStep === 'choice' && (
               <div className="grid gap-4">
                 <Card 
@@ -439,9 +474,9 @@ export default function Dashboard() {
                       <Users className="h-6 w-6" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold mb-1">Join Institution</h3>
+                      <h3 className="font-semibold mb-1">Request to Join Institution</h3>
                       <p className="text-sm text-muted-foreground">
-                        Connect with an existing institution
+                        Request authorization to connect with an existing institution
                       </p>
                     </div>
                     <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -570,10 +605,10 @@ export default function Dashboard() {
                       {isOnboardingLoading ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          Joining...
+                          Submitting Request...
                         </>
                       ) : (
-                        'Join Institution'
+                        'Request to Join'
                       )}
                     </Button>
                   </div>
