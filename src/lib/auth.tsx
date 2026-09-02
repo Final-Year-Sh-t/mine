@@ -22,6 +22,7 @@ interface AuthContextType {
   isLoading: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithOAuth: (provider: 'google' | 'github') => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshAuth: () => Promise<void>;
 }
@@ -39,10 +40,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkRolesAndInstitution = async (userId: string) => {
     try {
-      // Fetch roles + active institution flag
+      // Fetch roles + active institution flag + status
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
-        .select('role, institution_id, is_active')
+        .select('role, institution_id, is_active, status')
         .eq('user_id', userId);
 
       if (rolesError) {
@@ -50,17 +51,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { isAdmin: false, isSuperAdmin: false, institutionId: null };
       }
 
+      const approvedRoles = roles?.filter((r: any) => !r.status || r.status === 'approved') ?? [];
       const hasSuperAdmin = roles?.some((r) => r.role === 'super_admin') ?? false;
 
-      // Prefer the explicitly active institution; fall back to any institution if none marked active.
+      // Prefer the explicitly active institution among approved roles
       const activeInstitutionId =
-        roles?.find((r) => r.is_active && r.institution_id)?.institution_id ??
-        roles?.find((r) => r.institution_id)?.institution_id ??
+        approvedRoles.find((r) => r.is_active && r.institution_id)?.institution_id ??
+        approvedRoles.find((r) => r.institution_id)?.institution_id ??
         null;
 
       // Admin should be scoped to the active institution (super_admin overrides)
       const hasAdminForActiveInstitution = activeInstitutionId
-        ? roles?.some((r) => r.role === 'admin' && r.institution_id === activeInstitutionId) ?? false
+        ? approvedRoles.some((r) => r.role === 'admin' && r.institution_id === activeInstitutionId) ?? false
         : false;
 
       return {
@@ -173,6 +175,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error as Error | null };
   };
 
+  const signInWithOAuth = async (provider: 'google' | 'github') => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
+    return { error: error as Error | null };
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setIsAdmin(false);
@@ -208,6 +220,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading, 
       signUp, 
       signIn, 
+      signInWithOAuth,
       signOut,
       refreshAuth
     }}>

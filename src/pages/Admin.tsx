@@ -69,6 +69,7 @@ interface Member {
   user_id: string;
   role: 'admin' | 'user' | 'super_admin';
   staff_type: string | null;
+  status: 'pending' | 'approved' | 'rejected';
   profiles: { full_name: string | null; avatar_url: string | null } | null;
 }
 
@@ -224,7 +225,7 @@ registered_student: true,
       if (institutionId) {
         const { data: membersData, error: membersError } = await supabase
           .from('user_roles')
-          .select('id, user_id, role, staff_type')
+          .select('id, user_id, role, staff_type, status')
           .eq('institution_id', institutionId);
 
         if (membersError) {
@@ -250,6 +251,7 @@ registered_student: true,
             user_id: m.user_id,
             role: m.role,
             staff_type: m.staff_type,
+            status: m.status || 'approved',
             profiles: profilesById[m.user_id] ?? null,
           }));
           setMembers(transformedMembers);
@@ -393,6 +395,34 @@ const handleDelete = async (record: IndexRecord) => {
       });
     } finally {
       setIsUpdatingRole(null);
+    }
+  };
+
+  const handleUpdateMemberStatus = async (userId: string, newStatus: 'approved' | 'rejected') => {
+    if (!institutionId) return;
+
+    try {
+      const { error } = await supabase.rpc('update_member_status', {
+        _target_user_id: userId,
+        _institution_id: institutionId,
+        _new_status: newStatus,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: newStatus === 'approved' ? 'Member approved' : 'Request rejected',
+        description: `User join request has been ${newStatus === 'approved' ? 'approved' : 'rejected'}.`,
+      });
+
+      fetchData();
+    } catch (error: any) {
+      console.error('Error updating member status:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update member status.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -906,21 +936,91 @@ const resetForm = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="members">
+          <TabsContent value="members" className="space-y-6">
+            {members.some((m) => m.status === 'pending') && (
+              <Card className="border-amber-500/30 bg-amber-500/5">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                      <Clock className="h-5 w-5" />
+                      <CardTitle className="text-base font-semibold">Pending Member Requests</CardTitle>
+                    </div>
+                    <Badge variant="outline" className="border-amber-500/50 text-amber-600 dark:text-amber-400 bg-amber-500/10">
+                      {members.filter((m) => m.status === 'pending').length} Pending
+                    </Badge>
+                  </div>
+                  <CardDescription>
+                    Users who have requested authorization to join your institution.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Applicant Name</TableHead>
+                        <TableHead>User ID</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {members
+                        .filter((m) => m.status === 'pending')
+                        .map((member) => (
+                          <TableRow key={member.id}>
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <div className="h-8 w-8 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+                                  {member.profiles?.full_name?.[0]?.toUpperCase() || 'U'}
+                                </div>
+                                <span className="font-medium">{member.profiles?.full_name || 'Unknown User'}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-mono text-xs text-muted-foreground">
+                              {member.user_id}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleUpdateMemberStatus(member.user_id, 'approved')}
+                                  className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
+                                >
+                                  <CheckCircle2 className="h-4 w-4" />
+                                  Approve
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleUpdateMemberStatus(member.user_id, 'rejected')}
+                                  className="border-destructive/50 text-destructive hover:bg-destructive/10 gap-1"
+                                >
+                                  <XCircle className="h-4 w-4" />
+                                  Reject
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            )}
+
             <Card>
               <CardHeader>
-                <CardTitle>Institution Members</CardTitle>
-                <CardDescription>Manage members and their roles. Only members of your institution are shown.</CardDescription>
+                <CardTitle>Approved Members</CardTitle>
+                <CardDescription>Manage active members and their roles. Only approved members of your institution are shown.</CardDescription>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
                   <div className="flex items-center justify-center py-12">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
-                ) : members.length === 0 ? (
+                ) : members.filter((m) => m.status !== 'pending').length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground">
                     <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No members found</p>
+                    <p>No active members found</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
@@ -934,7 +1034,9 @@ const resetForm = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {members.map((member) => (
+                        {members
+                          .filter((m) => m.status !== 'pending')
+                          .map((member) => (
                           <TableRow key={member.id}>
                             <TableCell>
                               <div className="flex items-center gap-3">
