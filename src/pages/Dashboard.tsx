@@ -71,7 +71,6 @@ interface UserInstitution {
   institution_name: string;
   institution_slug: string;
   role: string;
-  is_active: boolean;
   status?: 'pending' | 'approved' | 'rejected';
 }
 
@@ -223,6 +222,9 @@ export default function Dashboard() {
       if (error) throw error;
 
       if (newInstitutionId) {
+        if (user) {
+          localStorage.setItem(`verifyid_last_institution_${user.id}`, newInstitutionId);
+        }
         await supabase.rpc('switch_active_institution', {
           _institution_id: newInstitutionId,
         });
@@ -237,6 +239,7 @@ export default function Dashboard() {
       await fetchUserInstitutions();
       setInstitutionName('');
       setShowInstitutionModal(false);
+      setOnboardingStep('choice');
     } catch (error: any) {
       console.error('Create institution error:', error);
       toast({
@@ -366,6 +369,10 @@ export default function Dashboard() {
       });
       
       if (error) throw error;
+      
+      if (user) {
+        localStorage.setItem(`verifyid_last_institution_${user.id}`, instId);
+      }
       
       toast({
         title: 'Switched institution',
@@ -744,31 +751,34 @@ export default function Dashboard() {
                       No other institutions
                     </div>
                   ) : (
-                    userInstitutions.map((inst) => (
-                      <DropdownMenuItem
-                        key={inst.institution_id}
-                        onClick={() => !inst.is_active && handleSwitchInstitution(inst.institution_id)}
-                        className={`cursor-pointer ${inst.is_active ? 'bg-primary/10 border-l-2 border-primary' : 'hover:bg-muted'}`}
-                      >
-                        <div className="flex items-center gap-3 w-full py-1">
-                          <div className={`flex h-8 w-8 items-center justify-center rounded-lg shrink-0 ${inst.is_active ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                            <Building2 className="h-4 w-4" />
+                    userInstitutions.map((inst) => {
+                      const isActive = inst.institution_id === institutionId;
+                      return (
+                        <DropdownMenuItem
+                          key={inst.institution_id}
+                          onClick={() => !isActive && handleSwitchInstitution(inst.institution_id)}
+                          className={`cursor-pointer ${isActive ? 'bg-primary/10 border-l-2 border-primary' : 'hover:bg-muted'}`}
+                        >
+                          <div className="flex items-center gap-3 w-full py-1">
+                            <div className={`flex h-8 w-8 items-center justify-center rounded-lg shrink-0 ${isActive ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                              <Building2 className="h-4 w-4" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{inst.institution_name}</p>
+                              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                <span className="capitalize">{inst.role}</span>
+                                {isActive && <span className="text-primary">• Active</span>}
+                              </p>
+                            </div>
+                            {isActive ? (
+                              <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                            ) : (
+                              <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                            )}
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{inst.institution_name}</p>
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                              <span className="capitalize">{inst.role}</span>
-                              {inst.is_active && <span className="text-primary">• Active</span>}
-                            </p>
-                          </div>
-                          {inst.is_active ? (
-                            <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                          ) : (
-                            <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                          )}
-                        </div>
-                      </DropdownMenuItem>
-                    ))
+                        </DropdownMenuItem>
+                      );
+                    })
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => handleOpenSwitchModal('join')} className="cursor-pointer">
@@ -826,11 +836,11 @@ export default function Dashboard() {
               </Card>
 
               {/* Other Institutions */}
-              {userInstitutions.filter(inst => !inst.is_active).length > 0 && (
+              {userInstitutions.filter(inst => inst.institution_id !== institutionId).length > 0 && (
                 <div className="space-y-2">
                   <p className="text-sm text-muted-foreground">Other Memberships</p>
                   {userInstitutions
-                    .filter(inst => !inst.is_active)
+                    .filter(inst => inst.institution_id !== institutionId)
                     .map((inst) => (
                       <Card 
                         key={inst.institution_id} 

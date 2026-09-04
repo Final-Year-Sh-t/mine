@@ -17,7 +17,6 @@ export interface UserInstitution {
   institution_name: string;
   institution_slug: string;
   role: string;
-  is_active: boolean;
   status: 'pending' | 'approved' | 'rejected';
 }
 
@@ -79,7 +78,7 @@ export function InstitutionProvider({ children }: { children: ReactNode }) {
     try {
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
-        .select('role, institution_id, is_active, status')
+        .select('role, institution_id, status')
         .eq('user_id', userId);
 
       if (rolesError) {
@@ -96,16 +95,17 @@ export function InstitutionProvider({ children }: { children: ReactNode }) {
       const approvedRoles = roles?.filter((r: any) => !r.status || r.status === 'approved') ?? [];
       const hasSuperAdmin = roles?.some((r) => r.role === 'super_admin') ?? false;
 
-      const activeInstitutionId =
-        approvedRoles.find((r) => r.is_active && r.institution_id)?.institution_id ??
-        (profile?.institution_id && approvedRoles.some((r) => r.institution_id === profile.institution_id) ? profile.institution_id : null) ??
-        approvedRoles.find((r) => r.institution_id)?.institution_id ??
-        null;
+      const localLastId = localStorage.getItem(`verifyid_last_institution_${userId}`);
 
-      if (activeInstitutionId && !approvedRoles.some((r) => r.is_active && r.institution_id === activeInstitutionId)) {
-        supabase.rpc('switch_active_institution', { _institution_id: activeInstitutionId }).then(({ error }) => {
-          if (error) console.error('Error auto-activating institution:', error);
-        });
+      const activeInstitutionId =
+        profile?.institution_id && (hasSuperAdmin || approvedRoles.some((r) => r.institution_id === profile.institution_id))
+          ? profile.institution_id
+          : localLastId && (hasSuperAdmin || approvedRoles.some((r) => r.institution_id === localLastId))
+          ? localLastId
+          : approvedRoles.find((r) => r.institution_id)?.institution_id ?? null;
+
+      if (activeInstitutionId) {
+        localStorage.setItem(`verifyid_last_institution_${userId}`, activeInstitutionId);
       }
 
       const hasAdminForActiveInstitution = activeInstitutionId
@@ -152,6 +152,7 @@ export function InstitutionProvider({ children }: { children: ReactNode }) {
       setUserInstitutions(instList);
 
       if (roleResult.institutionId) {
+        localStorage.setItem(`verifyid_last_institution_${user.id}`, roleResult.institutionId);
         const instData = await fetchInstitution(roleResult.institutionId);
         setInstitution(instData);
       } else {
