@@ -9,7 +9,6 @@ interface UserInstitution {
   institution_name: string;
   institution_slug: string;
   role: string;
-  is_active: boolean;
   status: 'pending' | 'approved' | 'rejected';
 }
 

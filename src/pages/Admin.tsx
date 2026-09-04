@@ -80,7 +80,6 @@ interface UserInstitution {
   institution_name: string;
   institution_slug: string;
   role: string;
-  is_active: boolean;
 }
 
 export default function Admin() {
@@ -171,6 +170,10 @@ registered_student: true,
       });
       
       if (error) throw error;
+      
+      if (user) {
+        localStorage.setItem(`verifyid_last_institution_${user.id}`, instId);
+      }
       
       toast({
         title: 'Switched institution',
@@ -588,24 +591,27 @@ const resetForm = () => {
                   <DropdownMenuContent align="start" className="w-64">
                     <DropdownMenuLabel>Switch Institution</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    {userInstitutions.map((inst) => (
-                      <DropdownMenuItem
-                        key={inst.institution_id}
-                        onClick={() => handleSwitchInstitution(inst.institution_id)}
-                        className={inst.is_active ? 'bg-primary/10' : ''}
-                      >
-                        <div className="flex items-center gap-2 w-full">
-                          <Building2 className="h-4 w-4 shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">{inst.institution_name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{inst.institution_slug}</p>
+                    {userInstitutions.map((inst) => {
+                      const isActive = inst.institution_id === institutionId;
+                      return (
+                        <DropdownMenuItem
+                          key={inst.institution_id}
+                          onClick={() => handleSwitchInstitution(inst.institution_id)}
+                          className={isActive ? 'bg-primary/10' : ''}
+                        >
+                          <div className="flex items-center gap-2 w-full">
+                            <Building2 className="h-4 w-4 shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{inst.institution_name}</p>
+                              <p className="text-xs text-muted-foreground truncate">{inst.institution_slug}</p>
+                            </div>
+                            {isActive && (
+                              <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                            )}
                           </div>
-                          {inst.is_active && (
-                            <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                          )}
-                        </div>
-                      </DropdownMenuItem>
-                    ))}
+                        </DropdownMenuItem>
+                      );
+                    })}
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}

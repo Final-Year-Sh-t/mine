@@ -161,7 +161,6 @@ export type Database = {
           created_at: string
           id: string
           institution_id: string | null
-          is_active: boolean
           role: Database["public"]["Enums"]["app_role"]
           staff_type: Database["public"]["Enums"]["staff_role"] | null
           user_id: string
@@ -170,7 +169,6 @@ export type Database = {
           created_at?: string
           id?: string
           institution_id?: string | null
-          is_active?: boolean
           role?: Database["public"]["Enums"]["app_role"]
           staff_type?: Database["public"]["Enums"]["staff_role"] | null
           user_id: string
@@ -179,7 +177,6 @@ export type Database = {
           created_at?: string
           id?: string
           institution_id?: string | null
-          is_active?: boolean
           role?: Database["public"]["Enums"]["app_role"]
           staff_type?: Database["public"]["Enums"]["staff_role"] | null
           user_id?: string
@@ -251,7 +248,6 @@ export type Database = {
           institution_id: string
           institution_name: string
           institution_slug: string
-          is_active: boolean
           role: Database["public"]["Enums"]["app_role"]
         }[]
       }

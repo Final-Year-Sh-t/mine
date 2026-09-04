@@ -74,6 +74,9 @@ export default function InstitutionRegister() {
       if (error) throw error;
 
       if (newInstitutionId) {
+        if (user) {
+          localStorage.setItem(`verifyid_last_institution_${user.id}`, newInstitutionId);
+        }
         await supabase.rpc('switch_active_institution', {
           _institution_id: newInstitutionId,
         });
@@ -85,7 +88,7 @@ export default function InstitutionRegister() {
       });
 
       await refreshInstitution();
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     } catch (error: any) {
       console.error('Institution creation error:', error);
       toast({
