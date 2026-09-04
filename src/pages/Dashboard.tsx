@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Navigate, Link, useSearchParams } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { useAuth } from '@/lib/auth';
+import { useInstitution } from '@/lib/contexts/InstitutionContext';
 import { supabase } from '@/integrations/supabase/client';
 import { StepUpVerificationDialog } from '@/components/dashboard/StepUpVerificationDialog';
 import { InstitutionSearchList } from '@/components/dashboard/InstitutionSearchList';
